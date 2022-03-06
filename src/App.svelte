@@ -2,6 +2,8 @@
   import Timeline from "./lib/Timeline.svelte";
   import type SubtitleInfo from "./lib/SubtitleInfo";
   import SubtitleList from "./lib/SubtitleList.svelte";
+  import Player from "./lib/Player.svelte";
+  import { PlaybackController } from "./lib/PlaybackController";
 
   let subtitles: SubtitleInfo[] = [
     {
@@ -26,7 +28,7 @@
     },
   ];
 
-  import { setContext } from "svelte";
+  import { setContext, onMount } from "svelte";
 
   setContext("app", {
     refresh: () => {
@@ -36,6 +38,7 @@
       // TODO: actual video info
       return {
         duration: 60000,
+        id: "grd-K33tOSM",
       };
     },
     getSettings: () => {
@@ -45,12 +48,41 @@
       };
     },
   });
+
+  let playerComponent: Player;
+  let timelineComponent: Timeline;
+  let playbackController: PlaybackController = undefined;
+  let playing = false;
+
+  onMount(() => {
+    playbackController = new PlaybackController(playerComponent);
+    playbackController.addEventListener("playback", (e) => {
+      timelineComponent.seekTo((e as CustomEvent).detail);
+    });
+    playbackController.addEventListener("play", (e) => {
+      playing = true;
+    });
+    playbackController.addEventListener("pause", (e) => {
+      playing = false;
+    });
+  });
 </script>
 
 <main>
   <h1>suptitle</h1>
 
-  <Timeline {subtitles} />
+  <Player
+    bind:this={playerComponent}
+    on:stateChange={(e) => playbackController.stateUpdate(e)}
+  />
+
+  <Timeline
+    bind:this={timelineComponent}
+    {subtitles}
+    {playing}
+    on:seek={(e) =>
+      playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead)}
+  />
 
   <br />
 
@@ -76,11 +108,10 @@
 
   :root
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif
-  
+
   main
-    padding: 1em
     overflow: hidden
-  
+
   h1
     color: colors.$main
     font-size: 2em

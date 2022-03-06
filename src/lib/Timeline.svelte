@@ -4,10 +4,13 @@
     import type SubtitleInfo from "./SubtitleInfo";
     import TimelineElement from "./TimelineElement.svelte";
 
-    import { getContext, onMount } from "svelte";
+    import { getContext, onMount, createEventDispatcher } from "svelte";
     const { getVideo, getSettings } = getContext("app");
+    const dispatch = createEventDispatcher();
 
     export let subtitles: SubtitleInfo[];
+
+    export let playing = false;
 
     let start_element: SubtitleInfo = {
         start: 0,
@@ -33,6 +36,23 @@
         offset_from_left += diff;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
+
+        dispatchSeek();
+    }
+
+    function dispatchSeek(allowSeekAhead = false) {
+        let secs = -offset_from_left / getSettings().zoom / 1000;
+
+        dispatch("seek", {
+            seconds: secs,
+            allowSeekAhead,
+        });
+    }
+
+    export function seekTo(seconds: number) {
+        offset_from_left = -seconds * getSettings().zoom * 1000;
+        offset_from_left = Math.min(offset_from_left, 0);
+        offset_from_left = Math.max(offset_from_left, -timeline_width);
     }
 
     function onMouseMove(e) {
@@ -50,6 +70,7 @@
 
     function onMouseUp(e) {
         dragging = false;
+        dispatchSeek(true);
         for (let element of elements) element.onMouseUp(e);
     }
 
@@ -104,7 +125,9 @@
         on:mousemove={onMouseMove}
         on:mouseleave={onMouseUp}
         on:wheel={onScrollWheel}
-        style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px)"
+        style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px); transition: {playing
+            ? 'left 100ms linear'
+            : 'none'}"
     >
         <div id="timeline-subtitles">
             {#each subtitles as subtitle, i}
