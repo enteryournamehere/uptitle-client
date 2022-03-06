@@ -104,12 +104,15 @@
         &:active
             cursor: grabbing
         height: 40px
+
+        border-radius: 5px
+        overflow: hidden
     
     .handle
         background: colors.$main
 
         &:hover
-            background: #f7c79c
+            background: colors.$main-lighter
         
         flex: 0 0 10px
         &.left

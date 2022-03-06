@@ -66,10 +66,14 @@
       playing = false;
     });
   });
+
+  function debug() {
+    console.log(playbackController.getCurrentTime());
+  }
 </script>
 
 <main>
-  <h1>suptitle</h1>
+  <h1 on:click={debug}>suptitle</h1>
 
   <Player
     bind:this={playerComponent}
@@ -116,4 +120,5 @@
     color: colors.$main
     font-size: 2em
     font-weight: 100
+    padding-left: 30px
 </style>

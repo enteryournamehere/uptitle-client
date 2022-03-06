@@ -49,8 +49,9 @@ export class PlaybackController extends EventTarget {
     }
 
     onPause() {
-        this.playing = false;
+        this.position = this.getCurrentTime();
         this.dispatchEvent(new CustomEvent('playback', { detail: this.position }));
         this.dispatchEvent(new CustomEvent('pause'));
+        this.playing = false;
     }
 }
