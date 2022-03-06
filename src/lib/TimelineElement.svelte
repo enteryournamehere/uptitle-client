@@ -119,7 +119,7 @@
             cursor: e-resize
 
     .text
-        // centred on both axes, max 2 lines, cut off with ellipsis
+        // aligned centre-left, max 2 lines, cut off with ellipsis
         display: -webkit-box
         overflow: hidden
         -webkit-line-clamp: 2
@@ -129,5 +129,5 @@
         user-select: none
         flex: 1
         padding: 0px 5px
-
+        white-space: pre-line
 </style>
