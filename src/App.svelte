@@ -73,7 +73,7 @@
 </script>
 
 <main>
-  <h1 on:click={debug}>suptitle</h1>
+  <h1 on:click={debug}>uptitle</h1>
 
   <Player
     bind:this={playerComponent}

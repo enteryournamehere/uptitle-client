@@ -36,8 +36,6 @@
         offset_from_left += diff;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
-
-        dispatchSeek();
     }
 
     function dispatchSeek(allowSeekAhead = false) {
@@ -58,6 +56,7 @@
     function onMouseMove(e) {
         if (dragging) {
             moveTimeline(e.movementX);
+            dispatchSeek();
         } else {
             for (let element of elements) element.onMouseMove(e);
         }
@@ -66,11 +65,15 @@
     function onScrollWheel(e) {
         e.preventDefault();
         moveTimeline(-e.deltaY);
+
+        dispatchSeek(true);
     }
 
     function onMouseUp(e) {
-        dragging = false;
-        dispatchSeek(true);
+        if (dragging) {
+            dragging = false;
+            dispatchSeek(true);
+        }
         for (let element of elements) element.onMouseUp(e);
     }
 
@@ -126,7 +129,7 @@
         on:mouseleave={onMouseUp}
         on:wheel={onScrollWheel}
         style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px); transition: {playing
-            ? 'left 100ms linear'
+            ? 'left 25ms linear'
             : 'none'}"
     >
         <div id="timeline-subtitles">

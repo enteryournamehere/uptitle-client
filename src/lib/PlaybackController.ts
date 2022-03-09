@@ -22,7 +22,7 @@ export class PlaybackController extends EventTarget {
             console.log('playbackTick')
             this.position = this.getCurrentTime();
             this.dispatchEvent(new CustomEvent('playback', { detail: this.position }));
-        }, 100);
+        }, 25);
     }
 
     stateUpdate(e) {
@@ -34,12 +34,10 @@ export class PlaybackController extends EventTarget {
     }
 
     getCurrentTime() {
-        // @ts-ignore (type info doesn't come through idk why)
         return this.youtubePlayer.getCurrentTime();
     }
 
     seekTo(seconds, allowSeekAhead) {
-        // @ts-ignore
         this.youtubePlayer.seekTo(seconds, allowSeekAhead);
     }
 
