@@ -4,7 +4,7 @@ import { url } from "@roxi/routify";
     export let projectInfo;
 </script>
 
-<a href={$url("editor?project=" + projectInfo.id)}>
+<a href={$url("/editor?project=" + projectInfo.id)}>
 <div class="project-tile">
     <div class="tile-header">{projectInfo.name}</div>
 

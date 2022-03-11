@@ -4,7 +4,7 @@ import Header from "../lib/shared/Header.svelte";
 
     let workspaces = [];
 
-    fetch('api/workspace/list')
+    fetch('/api/workspace/list')
         .then(response => response.json())
         .then(res => workspaces = res)
         .catch(console.error)

@@ -44,6 +44,7 @@
         loaded = true;
         console.log('load: mounted =', mounted);
         if (mounted) {
+            setupCanvas();
             drawCanvas();
         }
     }
@@ -52,6 +53,7 @@
         mounted = true;
         console.log('mount: loaded =', loaded);
         if (loaded) {
+            setupCanvas();
             drawCanvas();
         }
     });
@@ -66,6 +68,8 @@
         offset_from_left += diff;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
+
+        drawCanvas();
     }
 
     function dispatchSeek(allowSeekAhead = false) {
@@ -81,6 +85,8 @@
         offset_from_left = -seconds * getSettings().zoom * 1000;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
+        
+        drawCanvas();
     }
 
     function onMouseMove(e) {
@@ -111,45 +117,68 @@
         dragging = true;
     }
 
-    function drawCanvas() {
+    function setupCanvas() {
         let canvas: HTMLCanvasElement = document.getElementById(
             "timeline-canvas"
         ) as HTMLCanvasElement;
 
+        canvas.width = document.body.scrollWidth
+        canvas.style.width = document.body.scrollWidth + "px";
+    }
 
-        canvas.width = timeline_width
-        canvas.style.width = timeline_width + "px";
+    function drawCanvas() {
+        let canvas: HTMLCanvasElement = document.getElementById(
+            "timeline-canvas"
+        ) as HTMLCanvasElement;
         
         let ctx = canvas.getContext("2d");
         ctx.strokeStyle = "#ccc";
         ctx.lineWidth = 1;
         ctx.textAlign = "center";
 
-        console.log(projectInfo.video.duration, timeline_width, canvas, ctx, getSettings().zoom, canvas.style.width)
+        // clear
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        for (let ms = 250; ms < projectInfo.video.duration; ms += 250) {
+        // calcualte drawing area
+        let start = px_to_ms(0);
+        let end = px_to_ms(canvas.width);
+        // start at multiple of 250
+        start = Math.floor(start / 250) * 250;
+        end = Math.ceil(end / 250) * 250;
+
+        for (let ms = start; ms < end; ms += 250) {
+            if (ms <= 0) continue;
             if (ms % 1000 == 0) {
                 // Write time
                 ctx.fillStyle = "#ccc";
                 ctx.font = "12px Arial";
                 ctx.fillText(
                     millisecondsToTimestamp(ms, false),
-                    ms * getSettings().zoom,
+                    ms_to_px(ms),
                     canvas.height - 5
                 );
             } else if (ms % 500 == 0) {
                 ctx.beginPath();
-                ctx.moveTo(ms * getSettings().zoom, (canvas.height / 4) * 2);
-                ctx.lineTo(ms * getSettings().zoom, canvas.height);
+                ctx.moveTo(ms_to_px(ms), (canvas.height / 4) * 2);
+                ctx.lineTo(ms_to_px(ms), canvas.height);
                 ctx.stroke();
             } else {
                 ctx.beginPath();
-                ctx.moveTo(ms * getSettings().zoom, (canvas.height / 4) * 3);
-                ctx.lineTo(ms * getSettings().zoom, canvas.height);
+                ctx.moveTo(ms_to_px(ms), (canvas.height / 4) * 3);
+                ctx.lineTo(ms_to_px(ms), canvas.height);
                 ctx.stroke();
             }
         }
     }
+
+    function ms_to_px(ms) {
+        return document.body.scrollWidth / 2 + offset_from_left + ms * getSettings().zoom;
+    }
+
+    function px_to_ms(px) {
+        return (px - document.body.scrollWidth / 2 - offset_from_left) / getSettings().zoom;
+    }
+
 </script>
 
 <div id="timeline-area">
@@ -197,6 +226,9 @@
         padding-top: 10px
 
     #timeline-canvas
+        position: fixed
+        left: 0
+
         height: 40px
         cursor: grab
         &:active
