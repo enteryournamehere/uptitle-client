@@ -41,10 +41,6 @@ import { url } from "@roxi/routify";
             width: 100%
             padding-left: 10px
 
-
-        &.see-more
-            background: #bbb
-
         img
             height: $image
 

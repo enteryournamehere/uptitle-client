@@ -5,6 +5,9 @@
     import TimelineElement from "./TimelineElement.svelte";
 
     import { getContext, onMount, createEventDispatcher } from "svelte";
+    
+    import WaveformData from 'waveform-data';
+
     const { getSettings } = getContext("app");
     const dispatch = createEventDispatcher();
 
@@ -33,6 +36,8 @@
     let loaded = false;
     let mounted = false;
 
+    let waveformData;
+
     function load() {
         subtitles = projectInfo.subtitles;
         end_element = {
@@ -41,12 +46,18 @@
             text: "",
         }
         timeline_width = projectInfo.video.duration * getSettings().zoom;
-        loaded = true;
-        console.log('load: mounted =', mounted);
-        if (mounted) {
-            setupCanvas();
-            drawCanvas();
-        }
+        fetch('/api/waveform/' + projectInfo.video.id)
+            .then(data => data.arrayBuffer())
+            .then(data => {
+                if (data.byteLength > 0)
+                    waveformData = WaveformData.create(data);
+                loaded = true;
+                console.log('load: mounted =', mounted);
+                if (mounted) {
+                    setupCanvas();
+                    drawCanvas();
+                }
+            });
     }
 
     onMount(() => {
@@ -117,24 +128,28 @@
         dragging = true;
     }
 
+    let canvas: HTMLCanvasElement;
+    let ctx: CanvasRenderingContext2D;
+
     function setupCanvas() {
-        let canvas: HTMLCanvasElement = document.getElementById(
+        canvas = document.getElementById(
             "timeline-canvas"
         ) as HTMLCanvasElement;
 
         canvas.width = document.body.scrollWidth
         canvas.style.width = document.body.scrollWidth + "px";
+        ctx = canvas.getContext("2d");
+
+        if (waveformData)
+            waveformData = waveformData.resample({width: timeline_width})
     }
 
     function drawCanvas() {
-        let canvas: HTMLCanvasElement = document.getElementById(
-            "timeline-canvas"
-        ) as HTMLCanvasElement;
-        
-        let ctx = canvas.getContext("2d");
         ctx.strokeStyle = "#ccc";
         ctx.lineWidth = 1;
         ctx.textAlign = "center";
+
+        let markingsY = 40;
 
         // clear
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -155,20 +170,44 @@
                 ctx.fillText(
                     millisecondsToTimestamp(ms, false),
                     ms_to_px(ms),
-                    canvas.height - 5
+                    markingsY - 5
                 );
             } else if (ms % 500 == 0) {
                 ctx.beginPath();
-                ctx.moveTo(ms_to_px(ms), (canvas.height / 4) * 2);
-                ctx.lineTo(ms_to_px(ms), canvas.height);
+                ctx.moveTo(ms_to_px(ms), (markingsY / 4) * 2);
+                ctx.lineTo(ms_to_px(ms), markingsY);
                 ctx.stroke();
             } else {
                 ctx.beginPath();
-                ctx.moveTo(ms_to_px(ms), (canvas.height / 4) * 3);
-                ctx.lineTo(ms_to_px(ms), canvas.height);
+                ctx.moveTo(ms_to_px(ms), (markingsY / 4) * 3);
+                ctx.lineTo(ms_to_px(ms), markingsY);
                 ctx.stroke();
             }
         }
+
+        // Waveform
+        if (!waveformData) return;
+        const channel = waveformData.channel(0);
+
+        ctx.moveTo(document.body.scrollWidth / 2 + offset_from_left, 40 + 30);
+        start = Math.max(Math.floor(-offset_from_left - document.body.scrollWidth / 2), 0);
+        end = Math.floor(-offset_from_left + document.body.scrollWidth);
+        
+        // draw upper half
+        for (let x = start; x < end; x++) {
+            const val = channel.max_sample(x);
+            ctx.lineTo(document.body.scrollWidth / 2 + offset_from_left + x, 40 + 30 + val / 256 * 60);
+        }
+
+        // draw lower half
+        for (let x = end - 1; x >= start; x--) {
+            const val = -channel.max_sample(x);
+            ctx.lineTo(document.body.scrollWidth / 2 + offset_from_left + x, 40 + 30 + val / 256 * 60);
+        }
+
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
     }
 
     function ms_to_px(ms) {
@@ -208,13 +247,13 @@
         <canvas
             id="timeline-canvas"
             on:mousedown={onMouseDown}
-            height="40"
+            height="100"
         />
     </div>
 </div>
 
 <style lang="sass">
-    $total-height: 100px
+    $total-height: 160px
 
     #timeline-container
         background: #333
@@ -229,7 +268,7 @@
         position: fixed
         left: 0
 
-        height: 40px
+        height: 100px
         cursor: grab
         &:active
             cursor: grabbing
