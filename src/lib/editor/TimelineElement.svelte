@@ -91,7 +91,7 @@
 </div>
 
 <style lang="sass">
-    @use "./colors"
+    @use "../colors"
 
     .timeline-subtitle
         background: #eee

@@ -28,7 +28,7 @@ export class PlaybackController extends EventTarget {
     stateUpdate(e) {
         if (e.detail == 1) { // playing
             this.onPlay();
-        } else if (e.detail == 2) { // paused
+        } else if (e.detail == 2 || e.detail == 0) { // paused or ended
             this.onPause();
         }
     }

@@ -2,22 +2,37 @@
     let player = undefined;
     import { createEventDispatcher, onMount, getContext } from "svelte";
     const dispatch = createEventDispatcher();
-    let videoId = getContext("app").getVideo().id;
+    let videoId = "xx";
     let height = "360";
     let width = "640";
 
-    onMount(() => {
-        // load YT API script
-        let ytScriptUrl = "https://www.youtube.com/iframe_api";
-        var tag = document.createElement("script");
-        tag.src = ytScriptUrl;
-        var firstScriptTag = document.getElementsByTagName("script")[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    export let projectInfo;
+
+    let mounted = false;
+
+    $: (projectInfo && mounted) && load();
+
+    function load() {
+        videoId = projectInfo.video.id;
 
         // @ts-ignore
         window.onYouTubeIframeAPIReady = function () {
             createPlayer();
         };
+
+        // load YT API script
+        // check if it already exists
+        let ytScriptUrl = "https://www.youtube.com/iframe_api";
+        let ytScript = document.querySelector('script[src="' + ytScriptUrl + '"]');
+        if (ytScript) {
+            // @ts-ignore
+            window.onYouTubeIframeAPIReady();
+        } else {
+            var tag = document.createElement("script");
+            tag.src = ytScriptUrl;
+            var firstScriptTag = document.getElementsByTagName("script")[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
 
         function createPlayer() {
             // @ts-ignore
@@ -38,7 +53,11 @@
                 },
             });
         }
-    });
+    }
+
+    onMount(() => {
+        mounted = true;
+    })
 
     function onPlayerStateChange({ data }) {
         dispatch("stateChange", data);
@@ -53,9 +72,9 @@
         return player?.getCurrentTime();
     }
     export function seekTo(seconds, allowSeekAhead = true) {
-        console.log(allowSeekAhead);
         player?.seekTo(seconds, allowSeekAhead);
     }
+    
 </script>
 
 <div class="yt-component">

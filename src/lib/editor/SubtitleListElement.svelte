@@ -1,6 +1,6 @@
 <script lang="ts">
     import type SubtitleInfo from "./SubtitleInfo";
-    import { millisecondsToTimestamp } from "./utils";
+    import { millisecondsToTimestamp } from "../utils";
 
     export let info: SubtitleInfo;
 
@@ -26,7 +26,7 @@
 </div>
 
 <style lang="sass">
-    @use "./fonts"
+    @use "../fonts"
     .outer
         display: flex
         margin: 0px

@@ -1,16 +1,18 @@
 <script lang="ts">
-    import { millisecondsToTimestamp } from "./utils";
+    import { millisecondsToTimestamp } from "../utils";
 
     import type SubtitleInfo from "./SubtitleInfo";
     import TimelineElement from "./TimelineElement.svelte";
 
     import { getContext, onMount, createEventDispatcher } from "svelte";
-    const { getVideo, getSettings } = getContext("app");
+    const { getSettings } = getContext("app");
     const dispatch = createEventDispatcher();
 
-    export let subtitles: SubtitleInfo[];
+    let subtitles: SubtitleInfo[] = [];
 
     export let playing = false;
+
+    export let projectInfo = undefined;
 
     let start_element: SubtitleInfo = {
         start: 0,
@@ -19,12 +21,40 @@
     };
 
     let end_element: SubtitleInfo = {
-        start: getVideo().duration,
-        end: getVideo().duration,
+        start: 0,
+        end: 0,
         text: "",
     };
 
-    let timeline_width = getVideo().duration * getSettings().zoom;
+    $: projectInfo && load();
+
+    let timeline_width = 0;
+
+    let loaded = false;
+    let mounted = false;
+
+    function load() {
+        subtitles = projectInfo.subtitles;
+        end_element = {
+            start: projectInfo.video.duration,
+            end: projectInfo.video.duration,
+            text: "",
+        }
+        timeline_width = projectInfo.video.duration * getSettings().zoom;
+        loaded = true;
+        console.log('load: mounted =', mounted);
+        if (mounted) {
+            drawCanvas();
+        }
+    }
+
+    onMount(() => {
+        mounted = true;
+        console.log('mount: loaded =', loaded);
+        if (loaded) {
+            drawCanvas();
+        }
+    });
 
     let elements = [];
 
@@ -81,21 +111,23 @@
         dragging = true;
     }
 
-    // Draw timeline
-    onMount(() => {
-        drawCanvas();
-    });
-
     function drawCanvas() {
         let canvas: HTMLCanvasElement = document.getElementById(
             "timeline-canvas"
         ) as HTMLCanvasElement;
+
+
+        canvas.width = timeline_width
+        canvas.style.width = timeline_width + "px";
+        
         let ctx = canvas.getContext("2d");
         ctx.strokeStyle = "#ccc";
         ctx.lineWidth = 1;
         ctx.textAlign = "center";
 
-        for (let ms = 250; ms < getVideo().duration; ms += 250) {
+        console.log(projectInfo.video.duration, timeline_width, canvas, ctx, getSettings().zoom, canvas.style.width)
+
+        for (let ms = 250; ms < projectInfo.video.duration; ms += 250) {
             if (ms % 1000 == 0) {
                 // Write time
                 ctx.fillStyle = "#ccc";
@@ -147,9 +179,7 @@
         <canvas
             id="timeline-canvas"
             on:mousedown={onMouseDown}
-            width={timeline_width}
             height="40"
-            style="width: {timeline_width}px"
         />
     </div>
 </div>
