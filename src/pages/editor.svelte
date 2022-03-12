@@ -102,10 +102,10 @@
       bind:this={controlsComponent}
       {projectInfo}
       {playing}
-      on:seek={(e) =>{
+      on:seek={(e) => {
         playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
-        
-      timelineComponent.seekTo(e.detail.seconds);}}
+        timelineComponent.seekTo(e.detail.seconds);
+      }}
       on:play={(e) => playbackController.play()}
       on:pause={(e) => playbackController.pause()}
     />
@@ -115,6 +115,7 @@
     bind:this={timelineComponent}
     {projectInfo}
     {playing}
+    {subtitles}
     on:seek={(e) =>
       playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead)}
   />

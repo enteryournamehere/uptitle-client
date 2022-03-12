@@ -11,7 +11,7 @@
     const { getSettings } = getContext("app");
     const dispatch = createEventDispatcher();
 
-    let subtitles: SubtitleInfo[] = [];
+    export let subtitles: SubtitleInfo[] = [];
 
     export let playing = false;
 
@@ -39,7 +39,6 @@
     let waveformData;
 
     function load() {
-        subtitles = projectInfo.subtitles;
         end_element = {
             start: projectInfo.video.duration,
             end: projectInfo.video.duration,
