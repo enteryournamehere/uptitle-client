@@ -5,7 +5,7 @@
     export let next_sibling: SubtitleInfo;
 
     import { getContext } from "svelte";
-    const { refresh, getSettings } = getContext("app");
+    const { refresh, getSettings, uploadSubtitleEdit } = getContext("app");
 
     const zoom: number = getSettings().zoom;
 
@@ -35,9 +35,14 @@
     }
 
     export function onMouseUp(e) {
+        if (drag_state == DragState.None) {
+            return;
+        }
         drag_state = DragState.None;
         init_start = info.start * zoom;
         init_end = info.end * zoom;
+
+        uploadSubtitleEdit(info)
 
         refresh();
     }

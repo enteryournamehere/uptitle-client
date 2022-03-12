@@ -8,7 +8,7 @@
     $: endTimestamp = millisecondsToTimestamp(info.end);
 
     import { getContext } from "svelte";
-    const { refresh } = getContext("app");
+    const { refresh, uploadSubtitleEdit } = getContext("app");
 </script>
 
 <div class="outer">
@@ -18,7 +18,7 @@
         <span>{endTimestamp}</span>
     </div>
     <div class="right-part">
-        <textarea type="text" bind:value={info.text} on:input={refresh} />
+        <textarea type="text" bind:value={info.text} on:input={refresh} on:change={uploadSubtitleEdit(info)} />
     </div>
     <div class="menu-button">
         <button>menu</button>

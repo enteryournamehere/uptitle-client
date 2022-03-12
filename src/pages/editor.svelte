@@ -5,28 +5,7 @@
   import Player from "../lib/editor/Player.svelte";
   import { PlaybackController } from "../lib/editor/PlaybackController";
 
-  let subtitles: SubtitleInfo[] = [
-    {
-      start: 500,
-      end: 3000,
-      text: "Lorem ipsum dolor sit amet,",
-    },
-    {
-      start: 3000,
-      end: 5000,
-      text: "consectetur adipiscing elit. ",
-    },
-    {
-      start: 5500,
-      end: 8000,
-      text: "Ut luctus elit urna, ac varius leo tempor ut.",
-    },
-    {
-      start: 8500,
-      end: 10500,
-      text: "Phasellus scelerisque tortor eros,",
-    },
-  ];
+  let subtitles: SubtitleInfo[] = [];
 
   import { setContext, onMount, onDestroy } from "svelte";
   import Header from "../lib/shared/Header.svelte";
@@ -50,14 +29,54 @@
         zoom: 0.1,
       };
     },
+    uploadSubtitleEdit: (info: SubtitleInfo) => {
+      const patch = {}
+      if (info.text != info.prev_values.text)
+          patch['text'] = info.text;
+      if (info.start != info.prev_values.start)
+          patch['start'] = info.start;
+      if (info.end != info.prev_values.end)
+          patch['end'] = info.end;
+      
+      // Copy info to info.prev_values
+      info.prev_values = { text: info.text, start: info.start, end: info.end };
+
+      // Send patch to server
+      fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
+          method: "PATCH",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify(patch)
+      })
+          .then(res => res.json())
+          .then(res => {
+              if (res.error) {
+                  console.error(res.error);
+                  return;
+              }
+          })
+          .catch(err => {
+              console.error(err);
+          });
+    }
   });
 
   fetch(`/api/project/${projectId}`)
     .then((res) => res.json())
     .then((project) => {
       console.log(project);
-      project.subtitles = subtitles;
       projectInfo = project;
+    });
+
+  fetch(`/api/project/${projectId}/subtitle/list`)
+    .then((res) => res.json())
+    .then((subtitles2) => {
+      console.log(subtitles2);
+      subtitles2.forEach(info => {
+        info.prev_values = { text: info.text, start: info.start, end: info.end };
+      });
+      subtitles = subtitles2;
     });
 
   let playerComponent: Player;
@@ -129,9 +148,12 @@
   <button
     on:click={() => {
       console.log(subtitles);
+      const prev_end = (subtitles.length > 0)
+        ? subtitles[subtitles.length - 1].end
+        : 0
       subtitles.push({
-        start: subtitles[subtitles.length - 1].end + 500,
-        end: subtitles[subtitles.length - 1].end + 2500,
+        start: prev_end + 500,
+        end: prev_end + 2500,
         text: "subtitle",
       });
       subtitles = subtitles;
