@@ -5,8 +5,8 @@
     import TimelineElement from "./TimelineElement.svelte";
 
     import { getContext, onMount, createEventDispatcher } from "svelte";
-    
-    import WaveformData from 'waveform-data';
+
+    import WaveformData from "waveform-data";
 
     const { getSettings } = getContext("app");
     const dispatch = createEventDispatcher();
@@ -44,15 +44,15 @@
             start: projectInfo.video.duration,
             end: projectInfo.video.duration,
             text: "",
-        }
+        };
         timeline_width = projectInfo.video.duration * getSettings().zoom;
-        fetch('/api/waveform/' + projectInfo.video.id)
-            .then(data => data.arrayBuffer())
-            .then(data => {
+        fetch("/api/waveform/" + projectInfo.video.id)
+            .then((data) => data.arrayBuffer())
+            .then((data) => {
                 if (data.byteLength > 0)
                     waveformData = WaveformData.create(data);
                 loaded = true;
-                console.log('load: mounted =', mounted);
+                console.log("load: mounted =", mounted);
                 if (mounted) {
                     setupCanvas();
                     drawCanvas();
@@ -62,7 +62,7 @@
 
     onMount(() => {
         mounted = true;
-        console.log('mount: loaded =', loaded);
+        console.log("mount: loaded =", loaded);
         if (loaded) {
             setupCanvas();
             drawCanvas();
@@ -79,6 +79,7 @@
         offset_from_left += diff;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
+        offset_from_left = Math.floor(offset_from_left);
 
         drawCanvas();
     }
@@ -96,7 +97,8 @@
         offset_from_left = -seconds * getSettings().zoom * 1000;
         offset_from_left = Math.min(offset_from_left, 0);
         offset_from_left = Math.max(offset_from_left, -timeline_width);
-        
+        offset_from_left = Math.floor(offset_from_left);
+
         drawCanvas();
     }
 
@@ -136,12 +138,12 @@
             "timeline-canvas"
         ) as HTMLCanvasElement;
 
-        canvas.width = document.body.scrollWidth
+        canvas.width = document.body.scrollWidth;
         canvas.style.width = document.body.scrollWidth + "px";
         ctx = canvas.getContext("2d");
 
         if (waveformData)
-            waveformData = waveformData.resample({width: timeline_width})
+            waveformData = waveformData.resample({ width: timeline_width });
     }
 
     function drawCanvas() {
@@ -150,13 +152,22 @@
         ctx.textAlign = "center";
 
         let markingsY = 40;
+        let waveformHeight = 60;
+        const visible_width = document.body.scrollWidth;
 
         // clear
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // calcualte drawing area
         let start = px_to_ms(0);
-        let end = px_to_ms(canvas.width);
+        let end = px_to_ms(
+            Math.ceil(
+                Math.min(
+                    visible_width,
+                    timeline_width + offset_from_left + visible_width / 2
+                )
+            )
+        );
         // start at multiple of 250
         start = Math.floor(start / 250) * 250;
         end = Math.ceil(end / 250) * 250;
@@ -189,20 +200,40 @@
         if (!waveformData) return;
         const channel = waveformData.channel(0);
 
-        ctx.moveTo(document.body.scrollWidth / 2 + offset_from_left, 40 + 30);
-        start = Math.max(Math.floor(-offset_from_left - document.body.scrollWidth / 2), 0);
-        end = Math.floor(-offset_from_left + document.body.scrollWidth);
-        
-        // draw upper half
-        for (let x = start; x < end; x++) {
-            const val = channel.max_sample(x);
-            ctx.lineTo(document.body.scrollWidth / 2 + offset_from_left + x, 40 + 30 + val / 256 * 60);
-        }
+        ctx.moveTo(
+            document.body.scrollWidth / 2 + offset_from_left,
+            markingsY + waveformHeight / 2
+        );
+        // offset_from_left is a negative number.
+        // this we use to find out where to read the waveform.
+        start = Math.floor(Math.max(0, offset_from_left + visible_width / 2));
+        end = Math.ceil(
+            Math.min(
+                visible_width,
+                timeline_width + offset_from_left + visible_width / 2
+            )
+        );
 
         // draw lower half
-        for (let x = end - 1; x >= start; x--) {
-            const val = -channel.max_sample(x);
-            ctx.lineTo(document.body.scrollWidth / 2 + offset_from_left + x, 40 + 30 + val / 256 * 60);
+        for (let x = start; x <= end; x++) {
+            const val = channel.max_sample(
+                x - offset_from_left - visible_width / 2
+            );
+            ctx.lineTo(
+                x,
+                markingsY + waveformHeight / 2 + (val / 256) * waveformHeight
+            );
+        }
+
+        // draw upper half
+        for (let x = end; x >= start; x--) {
+            const val = -channel.max_sample(
+                x - offset_from_left - visible_width / 2
+            );
+            ctx.lineTo(
+                x,
+                markingsY + waveformHeight / 2 + (val / 256) * waveformHeight
+            );
         }
 
         ctx.closePath();
@@ -211,13 +242,19 @@
     }
 
     function ms_to_px(ms) {
-        return document.body.scrollWidth / 2 + offset_from_left + ms * getSettings().zoom;
+        return (
+            document.body.scrollWidth / 2 +
+            offset_from_left +
+            ms * getSettings().zoom
+        );
     }
 
     function px_to_ms(px) {
-        return (px - document.body.scrollWidth / 2 - offset_from_left) / getSettings().zoom;
+        return (
+            (px - document.body.scrollWidth / 2 - offset_from_left) /
+            getSettings().zoom
+        );
     }
-
 </script>
 
 <div id="timeline-area">
@@ -228,9 +265,7 @@
         on:mousemove={onMouseMove}
         on:mouseleave={onMouseUp}
         on:wheel={onScrollWheel}
-        style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px); transition: {playing
-            ? 'left 25ms linear'
-            : 'none'}"
+        style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px);"
     >
         <div id="timeline-subtitles">
             {#each subtitles as subtitle, i}
@@ -244,11 +279,7 @@
                 />
             {/each}
         </div>
-        <canvas
-            id="timeline-canvas"
-            on:mousedown={onMouseDown}
-            height="100"
-        />
+        <canvas id="timeline-canvas" on:mousedown={onMouseDown} height="100" />
     </div>
 </div>
 

@@ -19,7 +19,6 @@ export class PlaybackController extends EventTarget {
 
         this.playbackInterval = setInterval(() => {
             if (this.playing == false) return;
-            console.log('playbackTick')
             this.position = this.getCurrentTime();
             this.dispatchEvent(new CustomEvent('playback', { detail: this.position }));
         }, 25);
@@ -51,5 +50,13 @@ export class PlaybackController extends EventTarget {
         this.dispatchEvent(new CustomEvent('playback', { detail: this.position }));
         this.dispatchEvent(new CustomEvent('pause'));
         this.playing = false;
+    }
+
+    play() {
+        this.youtubePlayer.play();
+    }
+
+    pause() {
+        this.youtubePlayer.pause();
     }
 }

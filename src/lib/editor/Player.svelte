@@ -86,5 +86,4 @@
         display: flex
         justify-content: center
         height: 360px
-        background: #111
 </style>

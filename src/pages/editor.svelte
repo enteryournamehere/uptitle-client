@@ -30,6 +30,7 @@
 
   import { setContext, onMount, onDestroy } from "svelte";
   import Header from "../lib/shared/Header.svelte";
+  import Controls from "../lib/editor/Controls.svelte";
 
   const params = new URLSearchParams(window.location.search);
   const projectId = params.get("project");
@@ -42,10 +43,6 @@
   setContext("app", {
     refresh: () => {
       subtitles = subtitles;
-    },
-    getVideo: () => {
-      // TODO: actual video info
-      return undefined
     },
     getSettings: () => {
       // TODO: store and retrieve
@@ -65,6 +62,7 @@
 
   let playerComponent: Player;
   let timelineComponent: Timeline;
+  let controlsComponent: Controls;
   let playbackController: PlaybackController = undefined;
   let playing = false;
 
@@ -72,6 +70,7 @@
     playbackController = new PlaybackController(playerComponent);
     playbackController.addEventListener("playback", (e) => {
       timelineComponent.seekTo((e as CustomEvent).detail);
+      controlsComponent.seekTo((e as CustomEvent).detail);
     });
     playbackController.addEventListener("play", (e) => {
       playing = true;
@@ -83,10 +82,9 @@
 
   onDestroy(() => {
     clearInterval(playbackController.playbackInterval);
-  })
+  });
 
-  function debug() {
-  }
+  function debug() {}
 </script>
 
 <Header>
@@ -94,11 +92,24 @@
 </Header>
 
 <main>
-  <Player
-    bind:this={playerComponent}
-    {projectInfo}
-    on:stateChange={(e) => playbackController.stateUpdate(e)}
-  />
+  <div class="player-area">
+    <Player
+      bind:this={playerComponent}
+      {projectInfo}
+      on:stateChange={(e) => playbackController.stateUpdate(e)}
+    />
+    <Controls
+      bind:this={controlsComponent}
+      {projectInfo}
+      {playing}
+      on:seek={(e) =>{
+        playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
+        
+      timelineComponent.seekTo(e.detail.seconds);}}
+      on:play={(e) => playbackController.play()}
+      on:pause={(e) => playbackController.pause()}
+    />
+  </div>
 
   <Timeline
     bind:this={timelineComponent}
@@ -132,4 +143,13 @@
   
   h1
     padding-left: 30px
+
+  .player-area
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    align-items: center
+    // height: 40px
+    background: #111
+    // width: 640px
 </style>
