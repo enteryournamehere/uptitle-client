@@ -40,10 +40,13 @@
                 height,
                 width,
                 videoId: videoId,
+                host: 'http://www.youtube-nocookie.com',
                 playerVars: {
                     controls: 0,
                     disablekb: 1,
                     modestbranding: 1, // does not seem to do anything
+                    cc_load_policy: 3,
+                    iv_load_policy: 3,
                 },
                 events: {
                     onReady: (event) => {

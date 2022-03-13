@@ -2,6 +2,7 @@
   import Timeline from "../lib/editor/Timeline.svelte";
   import type SubtitleInfo from "../lib/editor/SubtitleInfo";
   import SubtitleList from "../lib/editor/SubtitleList.svelte";
+  import SubtitleDisplay from "../lib/editor/SubtitleDisplay.svelte";
   import Player from "../lib/editor/Player.svelte";
   import { PlaybackController } from "../lib/editor/PlaybackController";
 
@@ -30,36 +31,33 @@
       };
     },
     uploadSubtitleEdit: (info: SubtitleInfo) => {
-      const patch = {}
-      if (info.text != info.prev_values.text)
-          patch['text'] = info.text;
-      if (info.start != info.prev_values.start)
-          patch['start'] = info.start;
-      if (info.end != info.prev_values.end)
-          patch['end'] = info.end;
-      
+      const patch = {};
+      if (info.text != info.prev_values.text) patch["text"] = info.text;
+      if (info.start != info.prev_values.start) patch["start"] = info.start;
+      if (info.end != info.prev_values.end) patch["end"] = info.end;
+
       // Copy info to info.prev_values
       info.prev_values = { text: info.text, start: info.start, end: info.end };
 
       // Send patch to server
       fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
-          method: "PATCH",
-          headers: {
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify(patch)
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(patch),
       })
-          .then(res => res.json())
-          .then(res => {
-              if (res.error) {
-                  console.error(res.error);
-                  return;
-              }
-          })
-          .catch(err => {
-              console.error(err);
-          });
-    }
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.error) {
+            console.error(res.error);
+            return;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
   });
 
   fetch(`/api/project/${projectId}`)
@@ -73,8 +71,12 @@
     .then((res) => res.json())
     .then((subtitles2) => {
       console.log(subtitles2);
-      subtitles2.forEach(info => {
-        info.prev_values = { text: info.text, start: info.start, end: info.end };
+      subtitles2.forEach((info) => {
+        info.prev_values = {
+          text: info.text,
+          start: info.start,
+          end: info.end,
+        };
       });
       subtitles = subtitles2;
     });
@@ -84,12 +86,26 @@
   let controlsComponent: Controls;
   let playbackController: PlaybackController = undefined;
   let playing = false;
+  let currentSubtitleText = "";
+
+  function updateSubtitleDisplay(current_time_seconds) {
+    const currentTime = current_time_seconds * 1000;
+    const currentSubtitle = subtitles.find((subtitle) => {
+      return currentTime >= subtitle.start && currentTime <= subtitle.end;
+    });
+    if (currentSubtitle) {
+      currentSubtitleText = currentSubtitle.text;
+    } else {
+      currentSubtitleText = "";
+    }
+  }
 
   onMount(() => {
     playbackController = new PlaybackController(playerComponent);
     playbackController.addEventListener("playback", (e) => {
       timelineComponent.seekTo((e as CustomEvent).detail);
       controlsComponent.seekTo((e as CustomEvent).detail);
+      updateSubtitleDisplay((e as CustomEvent).detail);
     });
     playbackController.addEventListener("play", (e) => {
       playing = true;
@@ -110,7 +126,7 @@
       end: info.end,
       text: info.text,
       prev_values: { text: info.text, start: info.start, end: info.end },
-    }
+    };
     let insert_index = subtitles.length;
     for (let i = 0; i < subtitles.length; i++) {
       const subtitle = subtitles[i];
@@ -145,7 +161,7 @@
 
   function debug() {
     console.log(playerComponent.getCurrentTime());
-    console.log(subtitles)
+    console.log(subtitles);
   }
 </script>
 
@@ -160,6 +176,7 @@
       {projectInfo}
       on:stateChange={(e) => playbackController.stateUpdate(e)}
     />
+    <SubtitleDisplay text={currentSubtitleText} />
     <Controls
       bind:this={controlsComponent}
       {projectInfo}
@@ -167,6 +184,7 @@
       on:seek={(e) => {
         playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
         timelineComponent.seekTo(e.detail.seconds);
+        updateSubtitleDisplay(e.detail.seconds);
       }}
       on:play={(e) => playbackController.play()}
       on:pause={(e) => playbackController.pause()}
@@ -178,9 +196,10 @@
     {projectInfo}
     {playing}
     {subtitles}
-    on:seek={(e) =>{
+    on:seek={(e) => {
       playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
       controlsComponent.seekTo(e.detail.seconds);
+      updateSubtitleDisplay(e.detail.seconds);
     }}
   />
 
@@ -193,15 +212,15 @@
   <button
     on:click={() => {
       console.log(subtitles);
-      const prev_end = (subtitles.length > 0)
-        ? subtitles[subtitles.length - 1].end
-        : 0
+      const prev_end =
+        subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
       insertSubtitle({
         start: prev_end + 500,
         end: prev_end + 2500,
         text: "subtitle",
       });
-    }}>add new subtitle</button>
+    }}>add new subtitle</button
+  >
 
   <button
     on:click={() => {
@@ -211,7 +230,7 @@
       for (let i = 0; i < subtitles.length; i++) {
         const subtitle = subtitles[i];
         if (subtitle.start <= start && subtitle.end >= start) {
-          alert('Can\'t')
+          alert("Can't");
           return;
         }
       }
@@ -221,7 +240,8 @@
         end: start + 2000,
         text: "subtitle",
       });
-    }}>insert here</button>
+    }}>insert here</button
+  >
 </main>
 
 <style lang="sass">
@@ -235,7 +255,6 @@
     flex-direction: column
     justify-content: space-between
     align-items: center
-    // height: 40px
     background: #111
-    // width: 640px
+    position: relative
 </style>
