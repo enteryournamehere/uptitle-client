@@ -142,7 +142,9 @@
         ctx = canvas.getContext("2d");
 
         if (waveformData)
-            waveformData = waveformData.resample({ scale: waveformData.scale * (0.4 / getSettings().zoom)})
+            waveformData = waveformData.resample({
+                scale: waveformData.scale * (0.4 / getSettings().zoom),
+            });
     }
 
     function drawCanvas() {
@@ -256,14 +258,17 @@
     }
 </script>
 
-<div id="timeline-area">
+<div
+    id="timeline-area"
+    on:mouseup={onMouseUp}
+    on:mousemove={onMouseMove}
+    on:mouseleave={onMouseUp}
+    on:wheel={onScrollWheel}
+>
     <div id="timeline-overlay" />
+    <canvas id="timeline-canvas" on:mousedown={onMouseDown} height="100" />
     <div
         id="timeline-container"
-        on:mouseup={onMouseUp}
-        on:mousemove={onMouseMove}
-        on:mouseleave={onMouseUp}
-        on:wheel={onScrollWheel}
         style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px);"
     >
         <div id="timeline-subtitles">
@@ -278,7 +283,6 @@
                 />
             {/each}
         </div>
-        <canvas id="timeline-canvas" on:mousedown={onMouseDown} height="100" />
     </div>
 </div>
 
@@ -292,11 +296,14 @@
         height: $total-height
 
     #timeline-subtitles
+        z-index: 2
         padding-top: 10px
 
     #timeline-canvas
-        position: fixed
+        position: absolute
         left: 0
+        z-index: 1
+        margin-top: 50px
 
         height: 100px
         cursor: grab
@@ -310,6 +317,6 @@
         background: red
         width: 1px
         height: $total-height
-        z-index: 1
+        z-index: 3
 
 </style>
