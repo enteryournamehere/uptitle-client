@@ -1,4 +1,4 @@
-
+import "./assets/smui.css"
 import HMR from  '@roxi/routify/hmr'
 import App from './App.svelte';
 

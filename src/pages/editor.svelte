@@ -149,7 +149,7 @@
   }
 </script>
 
-<Header>
+<Header back_button={true}>
   <h2 on:click={debug}>{projectInfo ? projectInfo.name : "loading..."}</h2>
 </Header>
 
@@ -178,8 +178,10 @@
     {projectInfo}
     {playing}
     {subtitles}
-    on:seek={(e) =>
-      playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead)}
+    on:seek={(e) =>{
+      playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
+      controlsComponent.seekTo(e.detail.seconds);
+    }}
   />
 
   <br />

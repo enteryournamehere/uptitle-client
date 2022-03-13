@@ -1,6 +1,10 @@
 <script lang="ts">
     import ProjectTile from "./ProjectTile.svelte";
+    import Button, { Icon, Label } from "@smui/button";
+    import IconButton from "@smui/icon-button";
     export let workspaceInfo;
+
+    let showNewProjectPopup = false;
 </script>
 
 <div class="card">
@@ -10,13 +14,17 @@
         </h3>
 
         <div class="card-tools">
-            <span>{workspaceInfo.members.length} {workspaceInfo.members.length == 1 ? 'member' : 'members'}</span>
-            <button
-                type="button"
-                class="btn btn-tool"
-                data-card-widget="collapse"
-                ><i class="">options</i></button
-            >
+            <span>
+                {workspaceInfo.members.length}
+                {workspaceInfo.members.length == 1 ? "member" : "members"}
+            </span>
+            <Button variant="raised">
+                <Icon class="material-icons">add</Icon>
+                <Label>Add project</Label>
+            </Button>
+            <IconButton class="material-icons" on:click={() => {}}>
+                settings
+            </IconButton>
         </div>
     </div>
     <div class="card-body">
@@ -27,6 +35,10 @@
         <div class="card-tile see-more"><i>more...</i></div>
     </div>
 </div>
+
+{#if showNewProjectPopup}
+
+{/if}
 
 <style lang="sass">
     @use "../colors"
@@ -49,6 +61,14 @@
                 font-size: 1.5rem
                 font-weight: bold
 
+            *
+                display: flex
+                align-items: center
+
+            .card-tools
+                span
+                    margin-right: 10px
+
         .card-body
             padding: 10px
             display: flex
@@ -57,5 +77,5 @@
             align-items: center
             overflow: hidden
 
-            
+
 </style>

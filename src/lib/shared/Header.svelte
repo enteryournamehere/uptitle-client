@@ -1,9 +1,21 @@
 <script>
 import Login from "./Login.svelte";
+import IconButton from "@smui/icon-button";
 
+export let back_button = false;
 </script>
 <div class="header">
-    <h1>uptitle</h1>
+    <div class="box">
+        {#if back_button}
+        <IconButton
+            class="material-icons"
+            on:click={() => {
+                window.history.back();
+            }}
+        >arrow_back</IconButton>
+        {/if}
+        <h1>uptitle</h1>
+    </div>
     <slot></slot>
     <Login/>
 </div>
@@ -21,6 +33,10 @@ import Login from "./Login.svelte";
         box-shadow: 0 0px 3px 0px colors.$main
         align-items: center
         justify-content: space-between
+
+        .box
+            display: flex
+            align-items: center
 
     .username
         color: colors.$main

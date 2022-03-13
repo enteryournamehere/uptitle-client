@@ -1,12 +1,15 @@
 <script lang="ts">
     import { loginStore } from "./loginStore";
+    import Button, {Icon} from "@smui/button";
+    import Textfield from "@smui/textfield";
+    import IconButton from "@smui/icon-button";
     let user;
     loginStore.subscribe((e) => {
         user = e;
         // not sure this is the best place for this
-        if (user === false && window.location.pathname != "/") window.location.href = "/";
+        if (user === false && window.location.pathname != "/")
+            window.location.href = "/";
     });
-
 
     function logout() {
         fetch("/api/logout", { method: "POST" })
@@ -37,14 +40,20 @@
     }
     let loginPopup = false;
     let registerPopup = false;
+    let input_user='';
+    let input_pass='';
 </script>
 
 <div class="login-area">
     {#if user}
-        <span class="logged-in-text">Logged in as <span class="username">{user.name}</span></span>
-        <button on:click={logout}>log out</button>
+        <span class="logged-in-text"
+            >Logged in as <span class="username">{user.name}</span></span
+        >
+        <Button variant="raised" on:click={logout}>log out</Button>
     {:else}
-        <button on:click={() => (loginPopup = true)}>log in</button>
+        <Button variant="raised" on:click={() => (loginPopup = true)}
+            >log in</Button
+        >
     {/if}
 </div>
 
@@ -53,20 +62,19 @@
         <div class="popup-content">
             <div class="popup-header">
                 <h1>log in</h1>
-                <button on:click={() => (loginPopup = false)}>x</button>
+                <IconButton class="material-icons" on:click={() => (loginPopup = false)}>close</IconButton>
             </div>
             <div class="popup-body">
                 <form
                     on:submit={(e) => {
                         e.preventDefault();
-                        login(e.target.username.value, e.target.password.value);
+                        login(input_user, input_pass);
                     }}
                 >
-                    <label for="username">username</label>
-                    <input type="text" name="username" /><br />
-                    <label for="password">password</label>
-                    <input type="password" name="password" /><br /><br />
-                    <button>log in</button>
+                    <Textfield bind:value={input_user} label="Username"></Textfield><br/>
+                    <Textfield bind:value={input_pass} label="Password" type="password"></Textfield>
+                    <br />
+                    <Button style="float: right">log in</Button>
                 </form>
             </div>
         </div>
