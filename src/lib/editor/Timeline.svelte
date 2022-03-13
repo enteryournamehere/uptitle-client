@@ -142,7 +142,7 @@
         ctx = canvas.getContext("2d");
 
         if (waveformData)
-            waveformData = waveformData.resample({ width: timeline_width });
+            waveformData = waveformData.resample({ scale: waveformData.scale * (0.4 / getSettings().zoom)})
     }
 
     function drawCanvas() {
