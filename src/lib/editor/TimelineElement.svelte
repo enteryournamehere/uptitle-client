@@ -11,8 +11,8 @@
 
     let init_x: number = 0;
 
-    let init_start = info.start * zoom;
-    let init_end = info.end * zoom;
+    $: init_start = info.start * zoom;
+    $: init_end = info.end * zoom;
 
     enum DragState {
         Start,
