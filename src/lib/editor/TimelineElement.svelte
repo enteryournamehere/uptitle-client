@@ -11,8 +11,8 @@
 
     let init_x: number = 0;
 
-    $: init_start = info.start * zoom;
-    $: init_end = info.end * zoom;
+    let init_start = info.start * zoom;
+    let init_end = info.end * zoom;
 
     enum DragState {
         Start,
@@ -25,6 +25,8 @@
 
     function onMouseDown(e) {
         init_x = e.clientX;
+        init_start = info.start * zoom;
+        init_end = info.end * zoom;
         if (e.target.classList.contains("left")) {
             drag_state = DragState.Start;
         } else if (e.target.classList.contains("right")) {
