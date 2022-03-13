@@ -9,16 +9,24 @@
 
     import { getContext } from "svelte";
     const { refresh, uploadSubtitleEdit } = getContext("app");
+
+    function setFocus(value: boolean) {
+        info.focus = value;
+        refresh();
+    }
 </script>
 
-<div class="outer">
+<div class="outer" class:focused={info.focus}>
     <div class="left-part">
         <span>{startTimestamp}</span>
         <br />
         <span>{endTimestamp}</span>
     </div>
     <div class="right-part">
-        <textarea type="text" bind:value={info.text} on:input={refresh} on:change={uploadSubtitleEdit(info)} />
+        <textarea type="text" 
+        on:focusin={() => setFocus(true)}
+        on:focusout={() => setFocus(false)}
+        bind:value={info.text} on:input={refresh} on:change={uploadSubtitleEdit(info)} />
     </div>
     <div class="menu-button">
         <button>menu</button>
@@ -27,12 +35,17 @@
 
 <style lang="sass">
     @use "../fonts"
+    @use "../colors"
+
     .outer
         display: flex
         margin: 0px
         
         &:not(:last-child)
             border-bottom: 1px solid #eee
+
+        &.focused
+            outline: 3px solid colors.$main
 
         > div
             padding: 5px

@@ -44,7 +44,7 @@
         init_start = info.start * zoom;
         init_end = info.end * zoom;
 
-        uploadSubtitleEdit(info)
+        uploadSubtitleEdit(info);
 
         refresh();
     }
@@ -81,13 +81,22 @@
             }
         }
     }
+
+    function setFocus(value: boolean) {
+        info.focus = value;
+        refresh();
+    }
 </script>
 
 <div
     class="timeline-subtitle"
+    class:focused={info.focus}
+    tabindex="-1"
     on:mousedown={onMouseDown}
     on:mouseup={onMouseUp}
     on:mousemove={onMouseMove}
+    on:focusin={() => setFocus(true)}
+    on:focusout={() => setFocus(false)}
     draggable="false"
     style="left: {info.start * zoom}px; width: {info.end * zoom -
         info.start * zoom}px"
@@ -114,6 +123,9 @@
 
         border-radius: 5px
         overflow: hidden
+
+        &.focused
+            outline: 3px solid colors.$main
     
     .handle
         background: colors.$main
