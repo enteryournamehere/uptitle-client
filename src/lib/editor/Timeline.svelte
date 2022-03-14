@@ -214,12 +214,11 @@
                 timeline_width + offset_from_left + visible_width / 2
             )
         );
-
         // draw lower half
         for (let x = start; x <= end; x++) {
-            const val = channel.max_sample(
-                x - offset_from_left - visible_width / 2
-            );
+            const waveform_pixel = x - offset_from_left - visible_width / 2;
+            if (waveform_pixel >= waveformData.length) continue;
+            const val = channel.max_sample(waveform_pixel);
             ctx.lineTo(
                 x,
                 markingsY + waveformHeight / 2 + (val / 256) * waveformHeight
@@ -228,9 +227,9 @@
 
         // draw upper half
         for (let x = end; x >= start; x--) {
-            const val = -channel.max_sample(
-                x - offset_from_left - visible_width / 2
-            );
+            const waveform_pixel = x - offset_from_left - visible_width / 2;
+            if (waveform_pixel >= waveformData.length) continue;
+            const val = -channel.max_sample(waveform_pixel);
             ctx.lineTo(
                 x,
                 markingsY + waveformHeight / 2 + (val / 256) * waveformHeight
