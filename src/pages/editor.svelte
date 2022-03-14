@@ -118,6 +118,35 @@
       subtitles = subtitles2;
     });
 
+  interface SubtitleEvent extends Event {
+    data: string;
+  }
+
+  const eventSource = new EventSource(`/api/project/${projectId}/events`);
+
+  eventSource.addEventListener("subtitle_edit", (e) => {
+    const data = JSON.parse((<SubtitleEvent>e).data);
+    const info = subtitles.find((s) => s.id == data.subtitle);
+    if (!info) return;
+    if ('text' in data) info.text = data['text'];
+    if ('start' in data) info.start = data['start'];
+    if ('end' in data) info.end = data['end'];
+    subtitles = subtitles;
+  });
+
+  eventSource.addEventListener("subtitle_create", (e) => {
+    const data = JSON.parse((<SubtitleEvent>e).data);
+    insertSubtitle(data, data.subtitle);
+  });
+  
+  eventSource.addEventListener("subtitle_delete", (e) => {
+    const data = JSON.parse((<SubtitleEvent>e).data);
+    const info = subtitles.find((s) => s.id == data.subtitle);
+    if (!info) return;
+    subtitles.splice(subtitles.indexOf(info), 1);
+    subtitles = subtitles;
+  });
+
   let playerComponent: Player;
   let timelineComponent: Timeline;
   let controlsComponent: Controls;
@@ -156,7 +185,7 @@
     clearInterval(playbackController.playbackInterval);
   });
 
-  function createSubtitle(start, end = -1, text = "subtitle") {
+  function createSubtitle(start, end = -1, text = "subtitle", id = -1) {
     if (end == -1) end = start + 1000;
     for (let i = 0; i < subtitles.length; i++) {
       const subtitle = subtitles[i];
@@ -168,7 +197,7 @@
       }
     }
     return {
-      id: -1,
+      id: id,
       start,
       end,
       text,
@@ -180,8 +209,8 @@
     };
   }
 
-  function insertSubtitle(info) {
-    const new_obj = createSubtitle(info.start, info.end, info.text);
+  function insertSubtitle(info, id = -1) {
+    const new_obj = createSubtitle(info.start, info.end, info.text, id);
     if (!new_obj) return false;
     let insert_index = subtitles.length;
     for (let i = 0; i < subtitles.length; i++) {
@@ -190,6 +219,11 @@
         insert_index = i;
         break;
       }
+    }
+    if (id != -1) {
+      subtitles.splice(insert_index, 0, new_obj);
+      subtitles = subtitles;
+      return;
     }
     fetch(`/api/project/${projectId}/subtitle/create`, {
       method: "POST",
@@ -208,10 +242,9 @@
           console.error(res.error);
           return;
         }
-        new_obj.id = res.id;
+        // new_obj.id = res.id;
 
-        subtitles.splice(insert_index, 0, new_obj);
-        subtitles = subtitles;
+        // subtitles.splice(insert_index, 0, new_obj);
         // subtitles = subtitles;
       });
     return true;
