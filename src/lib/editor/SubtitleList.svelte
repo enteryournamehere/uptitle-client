@@ -16,11 +16,10 @@
         display: flex
         flex-direction: column
         align-items: stretch
-        justify-content: center
-
         width: 100%
         max-width: 500px
-        height: 100%
 
         border: 1px solid black
+
+        overflow-y: scroll
 </style>

@@ -5,6 +5,7 @@
   import SubtitleDisplay from "../lib/editor/SubtitleDisplay.svelte";
   import Player from "../lib/editor/Player.svelte";
   import { PlaybackController } from "../lib/editor/PlaybackController";
+  import Button from "@smui/button";
 
   let subtitles: SubtitleInfo[] = [];
 
@@ -165,11 +166,11 @@
   }
 </script>
 
-<Header back_button={true}>
-  <h2 on:click={debug}>{projectInfo ? projectInfo.name : "loading..."}</h2>
-</Header>
-
 <main>
+  <Header back_button={true}>
+    <h2 on:click={debug}>{projectInfo ? projectInfo.name : "loading..."}</h2>
+  </Header>
+
   <div class="player-area">
     <Player
       bind:this={playerComponent}
@@ -203,50 +204,61 @@
     }}
   />
 
-  <br />
+  <div class="bottom-area">
+    <div class="bottom-section" />
+    <div class="bottom-section section-subtitles">
+      <SubtitleList {subtitles} />
+    </div>
+    <div class="bottom-section section-settings">
+      <Button
+        style="margin: 20px"
+        variant="raised"
+        on:click={() => {
+          console.log(subtitles);
+          const prev_end =
+            subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
+          insertSubtitle({
+            start: prev_end + 500,
+            end: prev_end + 2500,
+            text: "subtitle",
+          });
+        }}>add subtitle at end</Button
+      >
 
-  <SubtitleList {subtitles} />
-
-  <br />
-
-  <button
-    on:click={() => {
-      console.log(subtitles);
-      const prev_end =
-        subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
-      insertSubtitle({
-        start: prev_end + 500,
-        end: prev_end + 2500,
-        text: "subtitle",
-      });
-    }}>add new subtitle</button
-  >
-
-  <button
-    on:click={() => {
-      console.log(subtitles);
-      const start = playbackController.getCurrentTime() * 1000;
-      // Check if this falls between any subtitle' start and end times.
-      for (let i = 0; i < subtitles.length; i++) {
-        const subtitle = subtitles[i];
-        if (subtitle.start <= start && subtitle.end >= start) {
-          alert("Can't");
-          return;
-        }
-      }
-      // Insert at the right place
-      insertSubtitle({
-        start: start,
-        end: start + 2000,
-        text: "subtitle",
-      });
-    }}>insert here</button
-  >
+      <Button
+        style="margin: 20px"
+        variant="raised"
+        on:click={() => {
+          console.log(subtitles);
+          const start = playbackController.getCurrentTime() * 1000;
+          // Check if this falls between any subtitle' start and end times.
+          for (let i = 0; i < subtitles.length; i++) {
+            const subtitle = subtitles[i];
+            if (subtitle.start <= start && subtitle.end >= start) {
+              alert("Can't");
+              return;
+            }
+          }
+          // Insert at the right place
+          insertSubtitle({
+            start: start,
+            end: start + 2000,
+            text: "subtitle",
+          });
+        }}>add subtitle here</Button
+      >
+    </div>
+  </div>
 </main>
 
 <style lang="sass">
   @use "../lib/global"
   
+  main
+    display: flex
+    flex-direction: column
+    height: 100vh
+
   h1
     padding-left: 30px
 
@@ -257,4 +269,19 @@
     align-items: center
     background: #111
     position: relative
+
+  .bottom-area
+    display: flex
+    overflow: hidden
+    align-items: stretch
+
+    .bottom-section
+      flex: 1 1 0
+      max-height: 100%
+      display: flex
+      justify-content: center
+      
+    .section-subtitles
+
+    .section-settings
 </style>

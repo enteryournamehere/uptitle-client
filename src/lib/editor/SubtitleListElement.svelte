@@ -23,10 +23,14 @@
         <span>{endTimestamp}</span>
     </div>
     <div class="right-part">
-        <textarea type="text" 
-        on:focusin={() => setFocus(true)}
-        on:focusout={() => setFocus(false)}
-        bind:value={info.text} on:input={refresh} on:change={uploadSubtitleEdit(info)} />
+        <textarea
+            type="text"
+            on:focusin={() => setFocus(true)}
+            on:focusout={() => setFocus(false)}
+            bind:value={info.text}
+            on:input={refresh}
+            on:change={uploadSubtitleEdit(info)}
+        />
     </div>
     <div class="menu-button">
         <button>menu</button>
@@ -45,7 +49,8 @@
             border-bottom: 1px solid #eee
 
         &.focused
-            outline: 3px solid colors.$main
+            outline: 2px solid colors.$main
+            outline-offset: -2px
 
         > div
             padding: 5px
