@@ -17,8 +17,12 @@
         {/if}
         <h1>uptitle</h1>
     </div>
-    <slot />
-    <Login />
+    <div class="box">
+        <slot />
+    </div>
+    <div class="box">
+        <Login />
+    </div>
 </div>
 
 <style lang="sass">
@@ -38,6 +42,14 @@
         .box
             display: flex
             align-items: center
+            flex: 1 1 0
+            justify-content: center
+
+        .box:first-child
+            justify-content: left
+
+        .box:last-child
+            justify-content: right
 
         h1
             padding-bottom: 4px
