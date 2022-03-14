@@ -231,10 +231,14 @@
         on:click={() => {
           console.log(subtitles);
           const start = playbackController.getCurrentTime() * 1000;
+          const end = start + 2000;
           // Check if this falls between any subtitle' start and end times.
           for (let i = 0; i < subtitles.length; i++) {
             const subtitle = subtitles[i];
-            if (subtitle.start <= start && subtitle.end >= start) {
+            if (
+              (subtitle.start <= start && subtitle.end >= start) ||
+              (subtitle.start <= end && subtitle.end >= end)
+            ) {
               alert("Can't");
               return;
             }
@@ -242,7 +246,7 @@
           // Insert at the right place
           insertSubtitle({
             start: start,
-            end: start + 2000,
+            end: end,
             text: "subtitle",
           });
         }}>add subtitle here</Button
