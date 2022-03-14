@@ -17,9 +17,6 @@
         flex-direction: column
         align-items: stretch
         width: 100%
-        max-width: 500px
-
-        border: 1px solid black
 
         overflow-y: scroll
 </style>

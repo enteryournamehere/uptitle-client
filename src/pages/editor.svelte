@@ -59,6 +59,42 @@
           console.error(err);
         });
     },
+    insertAfter: (info) => {
+      let result = insertSubtitle({
+        start: info.end + 0,
+        end: info.end + 1000,
+        text: "subtitle",
+      });
+      if (!result) alert("Failed to insert subtitle");
+    },
+    insertBefore: (info) => {
+      let result = insertSubtitle({
+        start: info.start - 1000,
+        end: info.start,
+        text: "subtitle",
+      });
+      if (!result) alert("Failed to insert subtitle");
+    },
+    remove: (info) => {
+      let index = subtitles.indexOf(info);
+      console.log(index);
+      if (index == -1) return;
+      subtitles.splice(index, 1);
+      subtitles = subtitles;
+      fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.error) {
+            console.error(res.error);
+            return;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
   });
 
   fetch(`/api/project/${projectId}`)
@@ -120,14 +156,33 @@
     clearInterval(playbackController.playbackInterval);
   });
 
-  function insertSubtitle(info) {
-    const new_obj = {
+  function createSubtitle(start, end = -1, text = "subtitle") {
+    if (end == -1) end = start + 1000;
+    for (let i = 0; i < subtitles.length; i++) {
+      const subtitle = subtitles[i];
+      if (
+        (subtitle.start <= start && subtitle.end > start) ||
+        (subtitle.start < end && subtitle.end >= end)
+      ) {
+        return false;
+      }
+    }
+    return {
       id: -1,
-      start: info.start,
-      end: info.end,
-      text: info.text,
-      prev_values: { text: info.text, start: info.start, end: info.end },
+      start,
+      end,
+      text,
+      prev_values: {
+        start,
+        end,
+        text,
+      },
     };
+  }
+
+  function insertSubtitle(info) {
+    const new_obj = createSubtitle(info.start, info.end, info.text);
+    if (!new_obj) return false;
     let insert_index = subtitles.length;
     for (let i = 0; i < subtitles.length; i++) {
       const subtitle = subtitles[i];
@@ -136,8 +191,6 @@
         break;
       }
     }
-    subtitles.splice(insert_index, 0, new_obj);
-    subtitles = subtitles;
     fetch(`/api/project/${projectId}/subtitle/create`, {
       method: "POST",
       headers: {
@@ -156,8 +209,12 @@
           return;
         }
         new_obj.id = res.id;
+
+        subtitles.splice(insert_index, 0, new_obj);
         subtitles = subtitles;
+        // subtitles = subtitles;
       });
+    return true;
   }
 
   function debug() {
@@ -232,23 +289,14 @@
           console.log(subtitles);
           const start = playbackController.getCurrentTime() * 1000;
           const end = start + 2000;
-          // Check if this falls between any subtitle' start and end times.
-          for (let i = 0; i < subtitles.length; i++) {
-            const subtitle = subtitles[i];
-            if (
-              (subtitle.start <= start && subtitle.end >= start) ||
-              (subtitle.start <= end && subtitle.end >= end)
-            ) {
-              alert("Can't");
-              return;
-            }
-          }
+
           // Insert at the right place
-          insertSubtitle({
+          let done = insertSubtitle({
             start: start,
             end: end,
             text: "subtitle",
           });
+          if (!done) alert("Could not  sorry");
         }}>add subtitle here</Button
       >
     </div>

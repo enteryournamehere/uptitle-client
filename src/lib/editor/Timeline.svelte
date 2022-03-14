@@ -68,7 +68,7 @@
         }
     });
 
-    let elements = [];
+    let elements = {} as { [key: number]: TimelineElement };
 
     // Drag/scroll handling
     let dragging: boolean = false;
@@ -106,7 +106,10 @@
             moveTimeline(e.movementX);
             dispatchSeek();
         } else {
-            for (let element of elements) element.onMouseMove(e);
+            for (let element of Object.values(elements)) {
+                if (!element) continue;
+                element.onMouseMove(e);
+            }
         }
     }
 
@@ -122,7 +125,10 @@
             dragging = false;
             dispatchSeek(true);
         }
-        for (let element of elements) element.onMouseUp(e);
+        for (let element of Object.values(elements)) {
+            if (!element) continue;
+            element.onMouseUp(e);
+        }
     }
 
     function onMouseDown(e) {
@@ -214,6 +220,7 @@
                 timeline_width + offset_from_left + visible_width / 2
             )
         );
+
         // draw lower half
         for (let x = start; x <= end; x++) {
             const waveform_pixel = x - offset_from_left - visible_width / 2;
@@ -271,9 +278,9 @@
         style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px);"
     >
         <div id="timeline-subtitles">
-            {#each subtitles as subtitle, i}
+            {#each subtitles as subtitle, i (subtitle)}
                 <TimelineElement
-                    bind:this={elements[i]}
+                    bind:this={elements[subtitle.id]}
                     info={subtitle}
                     prev_sibling={i > 0 ? subtitles[i - 1] : start_element}
                     next_sibling={i < subtitles.length - 1
