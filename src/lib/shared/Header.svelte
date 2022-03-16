@@ -53,8 +53,4 @@
 
         h1
             padding-bottom: 4px
-
-    .username
-        color: colors.$main
-        font-weight: bold
 </style>
