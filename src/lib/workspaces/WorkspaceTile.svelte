@@ -2,9 +2,50 @@
     import ProjectTile from "./ProjectTile.svelte";
     import Button, { Icon, Label } from "@smui/button";
     import IconButton from "@smui/icon-button";
+    import Textfield from "@smui/textfield";
+    import Dialog, { Title, Content, Actions } from "@smui/dialog";
+    import { getContext } from "svelte";
     export let workspaceInfo;
 
     let showNewProjectPopup = false;
+
+    const { refresh } = getContext("workspaces");
+
+    let project_video = "";
+    let project_name = "";
+
+    function create_project() {
+        // convert url to youtube video id, if applicable
+        const matches = project_video.match(/[\w-]+$/);
+        if (!matches) {
+            alert("Invalid video URL");
+            return;
+        }
+        const video_id = matches[0];
+        fetch("/api/project/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name: project_name,
+                workspace: workspaceInfo.id,
+                video: video_id,
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.error) {
+                    alert(data.message);
+                } else {
+                    showNewProjectPopup = false;
+                }
+                refresh();
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
 </script>
 
 <div class="card">
@@ -18,7 +59,12 @@
                 {workspaceInfo.members.length}
                 {workspaceInfo.members.length == 1 ? "member" : "members"}
             </span>
-            <Button variant="raised">
+            <Button
+                variant="raised"
+                on:click={() => {
+                    showNewProjectPopup = true;
+                }}
+            >
                 <Icon class="material-icons">add</Icon>
                 <Label>Add project</Label>
             </Button>
@@ -32,13 +78,30 @@
         {#each workspaceInfo.projects as project}
             <ProjectTile projectInfo={project} />
         {/each}
-        <div class="card-tile see-more"><i>more...</i></div>
     </div>
 </div>
 
-{#if showNewProjectPopup}
-
-{/if}
+<Dialog
+    bind:open={showNewProjectPopup}
+    aria-labelledby="simple-title"
+    aria-describedby="simple-content"
+>
+    <Title id="simple-title">Create project</Title>
+    <Content id="simple-content">
+        <form
+            on:submit={(e) => {
+                e.preventDefault();
+                create_project();
+            }}
+        >
+            <Textfield bind:value={project_name} label="Project name" />
+            <br />
+            <Textfield bind:value={project_video} label="Video URL or ID" />
+            <br />
+            <Button style="float:right; margin-top: 10px;">create</Button>
+        </form>
+    </Content>
+</Dialog>
 
 <style lang="sass">
     @use "../colors"
