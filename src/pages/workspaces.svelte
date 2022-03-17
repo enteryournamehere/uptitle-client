@@ -7,9 +7,10 @@
 
     setContext("workspaces", {
         refresh: () => {
-            fetch("/api/workspace/list")
+            return fetch("/api/workspace/list")
                 .then((response) => response.json())
                 .then((res) => {
+                    if (res.error) return;
                     workspaces = res;
                 })
                 .catch((error) => {
@@ -20,7 +21,10 @@
 
     fetch("/api/workspace/list")
         .then((response) => response.json())
-        .then((res) => (workspaces = res))
+        .then((res) => {
+            if (res.error) return;
+            workspaces = res;
+        })
         .catch(console.error);
 </script>
 

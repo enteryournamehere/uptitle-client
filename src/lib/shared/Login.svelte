@@ -1,31 +1,31 @@
 <script lang="ts">
-    import { loginStore } from "./loginStore";
+    import { loginStore, refresh } from "./loginStore";
     import Button from "@smui/button";
     import Textfield from "@smui/textfield";
     import Dialog, { Title, Content, Actions } from "@smui/dialog";
+    import { goto, redirect, url } from "@roxi/routify";
 
     let user;
     loginStore.subscribe((e) => {
         user = e;
         // not sure this is the best place for this
-        if (user === false && window.location.pathname != "/")
-            window.location.href = "/";
+        if (user === false && $url() != "") $goto("/");
     });
 
     function logout() {
         fetch("/api/logout", { method: "POST" })
             .then(() => loginStore.set(null))
-            .then(() => (window.location.href = "/"));
+            .then(() => $redirect("/"));
     }
 
-    function login(user, password) {
+    function login(username, password) {
         fetch("/api/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                user: user,
+                user: username,
                 password: password,
             }),
         })
@@ -34,7 +34,9 @@
                 if (data.error) {
                     alert(data.message);
                 } else {
-                    window.location.href = "/workspaces";
+                    refresh().then(() => {
+                        $goto("/workspaces");
+                    });
                 }
             })
             .catch((error) => {
@@ -42,7 +44,7 @@
             });
     }
 
-    function register(user, password) {
+    function register(username, password) {
         if (password != repeat_pass) {
             alert("Passwords do not match");
             return;
@@ -53,17 +55,18 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                user: user,
+                user: username,
                 password: password,
             }),
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
                 if (data.error) {
                     alert(data.message);
                 } else {
-                    window.location.href = "/workspaces";
+                    refresh().then(() => {
+                        $goto("/workspaces");
+                    });
                 }
             })
             .catch((error) => {

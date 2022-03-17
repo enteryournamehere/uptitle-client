@@ -100,13 +100,14 @@
   fetch(`/api/project/${projectId}`)
     .then((res) => res.json())
     .then((project) => {
-      console.log(project);
+      if (project.error) return;
       projectInfo = project;
     });
 
   fetch(`/api/project/${projectId}/subtitle/list`)
     .then((res) => res.json())
     .then((subtitles2) => {
+      if (subtitles2.error) return;
       console.log(subtitles2);
       subtitles2.forEach((info) => {
         info.prev_values = {
@@ -128,9 +129,9 @@
     const data = JSON.parse((<SubtitleEvent>e).data);
     const info = subtitles.find((s) => s.id == data.subtitle);
     if (!info) return;
-    if ('text' in data) info.text = data['text'];
-    if ('start' in data) info.start = data['start'];
-    if ('end' in data) info.end = data['end'];
+    if ("text" in data) info.text = data["text"];
+    if ("start" in data) info.start = data["start"];
+    if ("end" in data) info.end = data["end"];
     subtitles = subtitles;
   });
 
@@ -138,7 +139,7 @@
     const data = JSON.parse((<SubtitleEvent>e).data);
     insertSubtitle(data, data.subtitle);
   });
-  
+
   eventSource.addEventListener("subtitle_delete", (e) => {
     const data = JSON.parse((<SubtitleEvent>e).data);
     const info = subtitles.find((s) => s.id == data.subtitle);
