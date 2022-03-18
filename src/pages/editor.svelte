@@ -167,23 +167,33 @@
     }
   }
 
+  function playbackEventListener(e) {
+    timelineComponent.seekTo((e as CustomEvent).detail);
+    controlsComponent.seekTo((e as CustomEvent).detail);
+    updateSubtitleDisplay((e as CustomEvent).detail);
+  }
+
+  function playEventListener(e) {
+    playing = true;
+  }
+
+  function pauseEventListener(e) {
+    playing = false;
+  }
+
   onMount(() => {
     playbackController = new PlaybackController(playerComponent);
-    playbackController.addEventListener("playback", (e) => {
-      timelineComponent.seekTo((e as CustomEvent).detail);
-      controlsComponent.seekTo((e as CustomEvent).detail);
-      updateSubtitleDisplay((e as CustomEvent).detail);
-    });
-    playbackController.addEventListener("play", (e) => {
-      playing = true;
-    });
-    playbackController.addEventListener("pause", (e) => {
-      playing = false;
-    });
+    playbackController.addEventListener("playback", playbackEventListener);
+    playbackController.addEventListener("play", playEventListener);
+    playbackController.addEventListener("pause", pauseEventListener);
   });
 
   onDestroy(() => {
     clearInterval(playbackController.playbackInterval);
+    playbackController.removeEventListener("playback", playbackEventListener);
+    playbackController.removeEventListener("play", playEventListener);
+    playbackController.removeEventListener("pause", pauseEventListener);
+    eventSource.close();
   });
 
   function createSubtitle(start, end = -1, text = "subtitle", id = -1) {
@@ -344,9 +354,6 @@
     display: flex
     flex-direction: column
     height: 100vh
-
-  h1
-    padding-left: 30px
 
   .player-area
     display: flex
