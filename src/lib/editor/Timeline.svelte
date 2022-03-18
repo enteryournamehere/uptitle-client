@@ -45,13 +45,16 @@
             text: "",
         };
         timeline_width = projectInfo.video.duration * getSettings().zoom;
+        fetchWaveform();
+    }
+
+    export function fetchWaveform() {
         fetch("/api/waveform/" + projectInfo.video.id)
             .then((data) => data.arrayBuffer())
             .then((data) => {
                 if (data.byteLength > 0)
                     waveformData = WaveformData.create(data);
                 loaded = true;
-                console.log("load: mounted =", mounted);
                 if (mounted) {
                     setupCanvas();
                     drawCanvas();
@@ -61,7 +64,6 @@
 
     onMount(() => {
         mounted = true;
-        console.log("mount: loaded =", loaded);
         if (loaded) {
             setupCanvas();
             drawCanvas();

@@ -148,6 +148,10 @@
     subtitles = subtitles;
   });
 
+  eventSource.addEventListener("waveform_ready", (e) => {
+    timelineComponent.fetchWaveform();
+  })
+
   let playerComponent: Player;
   let timelineComponent: Timeline;
   let controlsComponent: Controls;
