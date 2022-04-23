@@ -21,6 +21,35 @@
 
   let projectInfo = undefined;
 
+  function uploadSubtitleEdit(info: SubtitleInfo) {
+    const patch = {};
+    if (info.text != info.prev_values.text) patch["text"] = info.text;
+    if (info.start != info.prev_values.start) patch["start"] = info.start;
+    if (info.end != info.prev_values.end) patch["end"] = info.end;
+
+    // Copy info to info.prev_values
+    info.prev_values = { text: info.text, start: info.start, end: info.end };
+
+    // Send patch to server
+    fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patch),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.error) {
+          console.error(res.error);
+          return;
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   setContext("app", {
     refresh: () => {
       subtitles = subtitles;
@@ -31,41 +60,15 @@
         zoom: 0.1,
       };
     },
-    uploadSubtitleEdit: (info: SubtitleInfo) => {
-      const patch = {};
-      if (info.text != info.prev_values.text) patch["text"] = info.text;
-      if (info.start != info.prev_values.start) patch["start"] = info.start;
-      if (info.end != info.prev_values.end) patch["end"] = info.end;
-
-      // Copy info to info.prev_values
-      info.prev_values = { text: info.text, start: info.start, end: info.end };
-
-      // Send patch to server
-      fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(patch),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.error) {
-            console.error(res.error);
-            return;
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    },
+    uploadSubtitleEdit: uploadSubtitleEdit,
     insertAfter: (info) => {
       let result = insertSubtitle({
-        start: info.end + 0,
-        end: info.end + 1000,
+        start: info.start + (info.end - info.start) / 2,
+        end: info.end,
         text: "subtitle",
       });
-      if (!result) alert("Failed to insert subtitle");
+      if (!result)
+        alert("There's not enough space here to create a new subtitle");
     },
     insertBefore: (info) => {
       let result = insertSubtitle({
@@ -73,7 +76,8 @@
         end: info.start,
         text: "subtitle",
       });
-      if (!result) alert("Failed to insert subtitle");
+      if (!result)
+        alert("There's not enough space here to create a new subtitle");
     },
     remove: (info) => {
       let index = subtitles.indexOf(info);
@@ -150,7 +154,7 @@
 
   eventSource.addEventListener("waveform_ready", (e) => {
     timelineComponent.fetchWaveform();
-  })
+  });
 
   let playerComponent: Player;
   let timelineComponent: Timeline;
@@ -201,15 +205,49 @@
   });
 
   function createSubtitle(start, end = -1, text = "subtitle", id = -1) {
-    if (end == -1) end = start + 1000;
+    if (end == -1) {
+      end = start + 1000;
+    }
+    let startCollision: SubtitleInfo, endCollision: SubtitleInfo;
+    let startCollisionEdited = false;
+    let newStartCollisionEnd: number;
+
+    subtitles.sort((a, b) => a.start - b.start);
     for (let i = 0; i < subtitles.length; i++) {
       const subtitle = subtitles[i];
-      if (
-        (subtitle.start <= start && subtitle.end > start) ||
-        (subtitle.start < end && subtitle.end >= end)
-      ) {
-        return false;
+      if (subtitle.start <= start && subtitle.end > start) {
+        startCollision = subtitle;
+        break;
       }
+    }
+
+    subtitles.sort((a, b) => a.end - b.end);
+    for (let i = 0; i < subtitles.length; i++) {
+      const subtitle = subtitles[i];
+      if (subtitle.start >= start && subtitle.start < end) {
+        endCollision = subtitle;
+        break;
+      }
+    }
+
+    if (startCollision) {
+      newStartCollisionEnd = start;
+      startCollisionEdited = true;
+      uploadSubtitleEdit(startCollision);
+    }
+    if (endCollision) {
+      end = endCollision.start;
+    }
+    if (
+      end - start < 200 ||
+      (startCollisionEdited &&
+        newStartCollisionEnd - startCollision.start < 200)
+    ) {
+      return false;
+    }
+    if (startCollisionEdited) {
+      startCollision.end = newStartCollisionEnd;
+      uploadSubtitleEdit(startCollision);
     }
     return {
       id: id,
@@ -230,7 +268,7 @@
     let insert_index = subtitles.length;
     for (let i = 0; i < subtitles.length; i++) {
       const subtitle = subtitles[i];
-      if (subtitle.start > info.start) {
+      if (subtitle.start > new_obj.start) {
         insert_index = i;
         break;
       }
@@ -246,9 +284,9 @@
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        start: info.start,
-        end: info.end,
-        text: info.text,
+        start: new_obj.start,
+        end: new_obj.end,
+        text: new_obj.text,
       }),
     })
       .then((res) => res.json())
@@ -336,7 +374,7 @@
         on:click={() => {
           console.log(subtitles);
           const start = playbackController.getCurrentTime() * 1000;
-          const end = start + 2000;
+          const end = start + 1000;
 
           // Insert at the right place
           let done = insertSubtitle({
@@ -344,7 +382,7 @@
             end: end,
             text: "subtitle",
           });
-          if (!done) alert("Could not  sorry");
+          if (!done) alert("There's not enough space here for a new subtitle");
         }}>add subtitle here</Button
       >
     </div>
