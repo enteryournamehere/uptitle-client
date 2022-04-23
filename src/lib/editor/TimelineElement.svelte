@@ -5,7 +5,7 @@
     export let next_sibling: SubtitleInfo;
 
     import { getContext } from "svelte";
-    const { refresh, getSettings, uploadSubtitleEdit } = getContext("app");
+    const { refresh, getSettings, uploadSubtitleEdit, remove } = getContext("app");
 
     const zoom: number = getSettings().zoom;
 
@@ -82,6 +82,12 @@
         }
     }
 
+    function onKeyDown(e) {
+        if (e.key == 'Delete') {
+            remove(info);
+        }
+    }
+
     function setFocus(value: boolean) {
         info.focus = value;
         refresh();
@@ -94,6 +100,7 @@
     tabindex="-1"
     on:mousedown={onMouseDown}
     on:mouseup={onMouseUp}
+    on:keydown={onKeyDown}
     on:mousemove={onMouseMove}
     on:focusin={() => setFocus(true)}
     on:focusout={() => setFocus(false)}
