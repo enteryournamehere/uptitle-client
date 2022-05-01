@@ -8,10 +8,12 @@
     setContext("workspaces", {
         refresh: () => {
             return fetch("/api/workspace/list")
-                .then((response) => response.json())
                 .then((res) => {
-                    if (res.error) return;
-                    workspaces = res;
+                    if (!res.ok) return;
+                    return res.json();
+                })
+                .then((data) => {
+                    workspaces = data;
                 })
                 .catch((error) => {
                     console.error(error);
@@ -20,12 +22,16 @@
     });
 
     fetch("/api/workspace/list")
-        .then((response) => response.json())
         .then((res) => {
-            if (res.error) return;
-            workspaces = res;
+            if (!res.ok) return;
+            return res.json();
         })
-        .catch(console.error);
+        .then((data) => {
+            workspaces = data;
+        })
+        .catch((error) => {
+            console.error(error);
+        });
 </script>
 
 <Header />

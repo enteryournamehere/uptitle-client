@@ -3,17 +3,15 @@ const loginStore = writable(undefined);
 
 function refresh() {
     return fetch("/api/auth")
-        .then((res) => res.json())
         .then((res) => {
-            console.log(res);
-            if (res.statusCode === 401) {
+            if (!res.ok) {
                 loginStore.set(false);
+                return
             }
-            else {
-                loginStore.set(res.user);
-            }
-
-        });
+            res.json().then(data => {
+                loginStore.set(data)
+            })
+        })
 }
 
 refresh();

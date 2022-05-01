@@ -29,15 +29,11 @@
                 password: password,
             }),
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.error) {
-                    alert(data.message);
-                } else {
-                    refresh().then(() => {
-                        $goto("/workspaces");
-                    });
-                }
+            .then((res) => {
+                if (!res.ok) return res.text().then(text => alert(text));
+                refresh().then(() => {
+                    $goto("/workspaces");
+                });
             })
             .catch((error) => {
                 console.error(error);
@@ -59,15 +55,12 @@
                 password: password,
             }),
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.error) {
-                    alert(data.message);
-                } else {
-                    refresh().then(() => {
-                        $goto("/workspaces");
-                    });
-                }
+            .then((res) => {
+                if (!res.ok) return res.text().then(text => alert(text));
+                refresh().then(() => {
+                    console.log('going to workspaces')
+                    $goto("/workspaces");
+                });
             })
             .catch((error) => {
                 console.error(error);
