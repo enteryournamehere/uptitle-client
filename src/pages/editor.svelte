@@ -3,6 +3,7 @@
   import type SubtitleInfo from "../lib/editor/SubtitleInfo";
   import SubtitleList from "../lib/editor/SubtitleList.svelte";
   import SubtitleDisplay from "../lib/editor/SubtitleDisplay.svelte";
+  import SnapshotListDialog from "../lib/editor/SnapshotListDialog.svelte";
   import Player from "../lib/editor/Player.svelte";
   import { PlaybackController } from "../lib/editor/PlaybackController";
   import Button from "@smui/button";
@@ -301,6 +302,22 @@
     return true;
   }
 
+  let show_snapshot_list = false;
+  let active_snapshot_timestamp = undefined;
+  let active_snapshot_subtitles: SubtitleInfo[] = [];
+
+  function fetch_snapshot() {
+    fetch(`/api/project/${projectId}/snapshot/${active_snapshot_timestamp}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.error) {
+          console.error(res.error);
+          return;
+        }
+        active_snapshot_subtitles = res;
+      });
+  }
+
   function debug() {
     console.log(playerComponent.getCurrentTime());
     console.log(subtitles);
@@ -308,6 +325,15 @@
 </script>
 
 <main>
+  <SnapshotListDialog
+    bind:visible={show_snapshot_list}
+    bind:selection={active_snapshot_timestamp}
+    {projectInfo}
+    on:click={() => {
+      fetch_snapshot();
+    }}
+  />
+
   <Header back_button={true}>
     <h2 on:click={debug}>{projectInfo ? projectInfo.name : "loading..."}</h2>
   </Header>
@@ -346,7 +372,31 @@
   />
 
   <div class="bottom-area">
-    <div class="bottom-section" />
+    <div class="bottom-section section-snapshots">
+      <!-- section for comparing with other snapshots -->
+      <div class="snapshots-header">
+        <b>Snapshots</b>
+        <Button
+          style="margin: 20px"
+          variant="raised"
+          on:click={() => {
+            show_snapshot_list = true;
+          }}>select to compare</Button
+        >
+        <Button
+          style="margin: 20px"
+          variant="raised"
+          on:click={() => {
+            fetch(`/api/project/${projectInfo.id}/snapshot/create`, {
+              method: "POST",
+            });
+          }}>create snapshot</Button
+        >
+      </div>
+      <div class="snapshots-content">
+        <SubtitleList subtitles={active_snapshot_subtitles} />
+      </div>
+    </div>
     <div class="bottom-section section-subtitles">
       <SubtitleList {subtitles} />
     </div>
@@ -413,8 +463,19 @@
       max-height: 100%
       display: flex
       justify-content: center
-      
-    .section-subtitles
 
-    .section-settings
+    .section-snapshots
+      display: flex
+      flex-direction: column
+      align-items: stretch
+      justify-content: start
+      width: 100%
+      height: 100%
+
+      .snapshots-header
+        padding-left: 15px
+
+      .snapshots-content
+        display: flex
+        overflow-y: scroll
 </style>

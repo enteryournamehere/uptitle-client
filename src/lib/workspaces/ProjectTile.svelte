@@ -1,17 +1,22 @@
 <script lang="ts">
-import { url } from "@roxi/routify";
-
-    export let projectInfo;
+  import ProjectInfoDialog from "./ProjectInfoDialog.svelte";
+  export let projectInfo;
+  let showProjectInfoPopup = false;
 </script>
 
-<a href={$url("/editor?project=" + projectInfo.id)}>
-<div class="project-tile">
-    <div class="tile-header">{projectInfo.name}</div>
+<div
+  class="project-tile"
+  on:click={() => {
+    showProjectInfoPopup = true;
+  }}
+>
+  <div class="tile-header">{projectInfo.name}</div>
 
-    <img src={projectInfo.thumbnail} alt="project thumbnail"/>
-
+  <img src={projectInfo.thumbnail} alt="project thumbnail" />
 </div>
-</a>
+
+<ProjectInfoDialog bind:visible={showProjectInfoPopup} {projectInfo} />
+
 <style lang="sass">
     $width: 300px
     $total: 200px
@@ -43,7 +48,4 @@ import { url } from "@roxi/routify";
 
         img
             height: $image
-
-    a:link, a:visited, a:hover, a:active
-        text-decoration: none
 </style>
