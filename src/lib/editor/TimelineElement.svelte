@@ -25,8 +25,8 @@
 
     function onMouseDown(e) {
         init_x = e.clientX;
-        init_start = info.start * zoom;
-        init_end = info.end * zoom;
+        init_start = Math.floor(info.start * zoom);
+        init_end = Math.floor(info.end * zoom);
         if (e.target.classList.contains("left")) {
             drag_state = DragState.Start;
         } else if (e.target.classList.contains("right")) {
@@ -69,14 +69,14 @@
 
             switch (drag_state) {
                 case DragState.Main:
-                    info.start = (init_start + delta) / zoom;
-                    info.end = (init_end + delta) / zoom;
+                    info.start = Math.floor((init_start + delta) / zoom);
+                    info.end = Math.floor((init_end + delta) / zoom);
                     break;
                 case DragState.Start:
-                    info.start = (init_start + delta) / zoom;
+                    info.start = Math.floor((init_start + delta) / zoom);
                     break;
                 case DragState.End:
-                    info.end = (init_end + delta) / zoom;
+                    info.end = Math.floor((init_end + delta) / zoom);
                     break;
             }
         }

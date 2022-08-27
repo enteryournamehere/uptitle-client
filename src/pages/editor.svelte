@@ -38,12 +38,8 @@
       },
       body: JSON.stringify(patch),
     })
-      .then((res) => res.json())
       .then((res) => {
-        if (res.error) {
-          console.error(res.error);
-          return;
-        }
+        if (!res.ok) return res.text().then((text) => console.error(text));
       })
       .catch((err) => {
         console.error(err);
@@ -81,19 +77,14 @@
     },
     remove: (info) => {
       let index = subtitles.indexOf(info);
-      console.log(index);
       if (index == -1) return;
       subtitles.splice(index, 1);
       subtitles = subtitles;
       fetch(`/api/project/${projectId}/subtitle/${info.id}`, {
         method: "DELETE",
       })
-        .then((res) => res.json())
         .then((res) => {
-          if (res.error) {
-            console.error(res.error);
-            return;
-          }
+          if (!res.ok) return res.text().then((text) => console.error(text));
         })
         .catch((err) => {
           console.error(err);
@@ -130,23 +121,25 @@
   const eventSource = new EventSource(`/api/project/${projectId}/events`);
 
   eventSource.addEventListener("subtitle_edit", (e) => {
-    const data = JSON.parse((<SubtitleEvent>e).data);
+    const data = JSON.parse((<SubtitleEvent>e).data).info.SubtitleEdit;
     const info = subtitles.find((s) => s.id == data.subtitle);
     if (!info) return;
-    if ("text" in data) info.text = data["text"];
-    if ("start" in data) info.start = data["start"];
-    if ("end" in data) info.end = data["end"];
+    if ("text" in data && data["text"] !== null) info.text = data["text"];
+    if ("start" in data && data["start"] !== null) info.start = data["start"];
+    if ("end" in data && data["end"] !== null) info.end = data["end"];
     subtitles = subtitles;
   });
 
   eventSource.addEventListener("subtitle_create", (e) => {
     const data = JSON.parse((<SubtitleEvent>e).data);
-    insertSubtitle(data, data.subtitle);
+    insertSubtitle(data.info.SubtitleCreate, data.info.SubtitleCreate.subtitle);
   });
 
   eventSource.addEventListener("subtitle_delete", (e) => {
     const data = JSON.parse((<SubtitleEvent>e).data);
-    const info = subtitles.find((s) => s.id == data.subtitle);
+    const info = subtitles.find(
+      (s) => s.id == data.info.SubtitleDelete.subtitle
+    );
     if (!info) return;
     subtitles.splice(subtitles.indexOf(info), 1);
     subtitles = subtitles;
@@ -155,6 +148,9 @@
   eventSource.addEventListener("waveform_ready", (e) => {
     timelineComponent.fetchWaveform();
   });
+
+  eventSource.onmessage = console.log;
+  eventSource.onerror = console.error;
 
   let playerComponent: Player;
   let timelineComponent: Timeline;
@@ -208,6 +204,8 @@
     if (end == -1) {
       end = start + 1000;
     }
+    start = Math.floor(start);
+    end = Math.floor(end);
     let startCollision: SubtitleInfo, endCollision: SubtitleInfo;
     let startCollisionEdited = false;
     let newStartCollisionEnd: number;
