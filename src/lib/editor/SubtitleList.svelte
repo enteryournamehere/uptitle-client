@@ -3,11 +3,13 @@
     import type SubtitleInfo from "./SubtitleInfo";
 
     export let subtitles: SubtitleInfo[];
+
+    export let disabled = false;
 </script>
 
 <div class="subtitle-list">
     {#each subtitles as subtitle}
-        <SubtitleListElement info={subtitle} />
+        <SubtitleListElement info={subtitle} {disabled} />
     {/each}
 </div>
 

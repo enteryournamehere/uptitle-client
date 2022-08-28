@@ -120,7 +120,7 @@
     </IconButton>
 </div>
 <div class="snapshots-content">
-    <SubtitleList subtitles={snapshot.subtitles} />
+    <SubtitleList subtitles={snapshot.subtitles} disabled={true} />
 </div>
 
 <style lang="sass">

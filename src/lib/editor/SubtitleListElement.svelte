@@ -8,6 +8,7 @@
     import List, { Item, Separator, Text, Graphic } from "@smui/list";
 
     export let info: SubtitleInfo;
+    export let disabled = false;
     let menu: MenuComponentDev;
 
     $: startTimestamp = millisecondsToTimestamp(info.start);
@@ -42,6 +43,7 @@
     <div class="right-part">
         <textarea
             type="text"
+            {disabled}
             on:focusin={() => setFocus(true)}
             on:focusout={() => setFocus(false)}
             bind:value={info.text}
@@ -49,37 +51,39 @@
             on:change={uploadSubtitleEdit(info)}
         />
     </div>
-    <div>
-        <IconButton
-            style="float:right"
-            class="material-icons"
-            on:click={() => menu.setOpen(true)}
+    {#if disabled == false}
+        <div>
+            <IconButton
+                style="float:right"
+                class="material-icons"
+                on:click={() => menu.setOpen(true)}
+            >
+                more_horiz
+            </IconButton>
+        </div>
+        <Menu
+            bind:this={menu}
+            style="width: 200px"
+            anchorCorner="BOTTOM_RIGHT"
+            anchorMargin={{ top: 0, bottom: 0, left: 0, right: 200 }}
         >
-            more_horiz
-        </IconButton>
-    </div>
-    <Menu
-        bind:this={menu}
-        style="width: 200px"
-        anchorCorner="BOTTOM_RIGHT"
-        anchorMargin={{ top: 0, bottom: 0, left: 0, right: 200 }}
-    >
-        <List dense>
-            <Item on:SMUI:action={insert_before}>
-                <Graphic class="material-icons">expand_less</Graphic>
-                <Text>Insert before</Text>
-            </Item>
-            <Item on:SMUI:action={insert_after}>
-                <Graphic class="material-icons">expand_more</Graphic>
-                <Text>Insert after</Text>
-            </Item>
-            <Separator />
-            <Item on:SMUI:action={remove_self}>
-                <Graphic class="material-icons">delete</Graphic>
-                <Text>Delete</Text>
-            </Item>
-        </List>
-    </Menu>
+            <List dense>
+                <Item on:SMUI:action={insert_before}>
+                    <Graphic class="material-icons">expand_less</Graphic>
+                    <Text>Insert before</Text>
+                </Item>
+                <Item on:SMUI:action={insert_after}>
+                    <Graphic class="material-icons">expand_more</Graphic>
+                    <Text>Insert after</Text>
+                </Item>
+                <Separator />
+                <Item on:SMUI:action={remove_self}>
+                    <Graphic class="material-icons">delete</Graphic>
+                    <Text>Delete</Text>
+                </Item>
+            </List>
+        </Menu>
+    {/if}
 </div>
 
 <style lang="sass">
