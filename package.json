@@ -21,6 +21,7 @@
     "@smui/menu": "^6.0.0-beta.15",
     "@smui/menu-surface": "^6.0.0-beta.15",
     "@smui/radio": "^6.1.0",
+    "@smui/select": "^6.1.0",
     "@smui/slider": "^6.0.0-beta.15",
     "@smui/textfield": "^6.0.0-beta.15",
     "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",

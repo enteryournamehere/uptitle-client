@@ -3,6 +3,7 @@
     import Button, { Label } from "@smui/button";
     import List, { Item, Graphic, Text } from "@smui/list";
     import Radio from "@smui/radio";
+    import SnapshotListEntry from "./SnapshotListEntry.svelte";
 
     export let visible = false;
     export let projectInfo;
@@ -41,20 +42,7 @@
                         />
                     </Graphic>
                     <Text>
-                        <span class="snapshot-item-title">
-                            {#if snapshot.name != null}
-                                {snapshot.name}
-                            {:else}
-                                Untitled
-                            {/if}
-                        </span>
-                        <span class="snapshot-item-date">
-                            <time datetime={snapshot.timestamp}
-                                >{new Date(
-                                    snapshot.timestamp * 1000
-                                ).toLocaleString("sv-SV")}</time
-                            >
-                        </span>
+                        <SnapshotListEntry {snapshot} />
                     </Text>
                 </Item>
             {/each}
@@ -69,6 +57,5 @@
 </Dialog>
 
 <style lang="sass">
- .snapshot-item-date
-        color: #bbb
+
 </style>

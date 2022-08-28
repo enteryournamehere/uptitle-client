@@ -3,6 +3,7 @@
     import Button, { Label } from "@smui/button";
     import IconButton from "@smui/icon-button";
     import { goto } from "@roxi/routify";
+    import SnapshotListEntry from "../editor/SnapshotListEntry.svelte";
 
     export let visible = false;
     export let projectInfo;
@@ -69,20 +70,7 @@
                     {#each snapshot_list as snapshot}
                         <div class="snapshot-item">
                             <div class="snapshot-item-header">
-                                <span class="snapshot-item-title">
-                                    {#if snapshot.name != null}
-                                        {snapshot.name}
-                                    {:else}
-                                        Untitled
-                                    {/if}
-                                </span>
-                                <span class="snapshot-item-date">
-                                    <time datetime={snapshot.timestamp}
-                                        >{new Date(
-                                            snapshot.timestamp * 1000
-                                        ).toLocaleString("sv-SV")}</time
-                                    >
-                                </span>
+                                <SnapshotListEntry {snapshot} />
                             </div>
                         </div>
                     {/each}
@@ -127,9 +115,6 @@
     .languages-column .column-content
         display: flex
         flex-wrap: wrap
-
-    .snapshot-item-date
-        color: #bbb
 
     .language
         padding: 10px
