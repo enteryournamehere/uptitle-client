@@ -34,7 +34,7 @@
     }
 </script>
 
-<div class="outer" class:focused={info.focus}>
+<div class="outer" class:focused={info.focus} class:disabled>
     <div class="left-part">
         <span>{startTimestamp}</span>
         <br />
@@ -100,6 +100,9 @@
         &.focused
             outline: 2px solid colors.$main
             outline-offset: -2px
+
+            &.disabled
+                outline: 2px solid colors.$blue
 
         > div
             padding: 5px

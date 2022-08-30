@@ -1,11 +1,15 @@
 <script lang="ts">
     import type SubtitleInfo from "./SubtitleInfo";
+
+    export let disabled = false;
+
     export let info: SubtitleInfo;
     export let prev_sibling: SubtitleInfo;
     export let next_sibling: SubtitleInfo;
 
     import { getContext } from "svelte";
-    const { refresh, getSettings, uploadSubtitleEdit, remove } = getContext("app");
+    const { refresh, getSettings, uploadSubtitleEdit, remove } =
+        getContext("app");
 
     const zoom: number = getSettings().zoom;
 
@@ -24,6 +28,7 @@
     let drag_state: DragState = DragState.None;
 
     function onMouseDown(e) {
+        if (disabled) return;
         init_x = e.clientX;
         init_start = Math.floor(info.start * zoom);
         init_end = Math.floor(info.end * zoom);
@@ -37,6 +42,7 @@
     }
 
     export function onMouseUp(e) {
+        if (disabled) return;
         if (drag_state == DragState.None) {
             return;
         }
@@ -50,6 +56,7 @@
     }
 
     export function onMouseMove(e) {
+        if (disabled) return;
         if (drag_state != DragState.None) {
             let delta = e.clientX - init_x;
 
@@ -83,7 +90,8 @@
     }
 
     function onKeyDown(e) {
-        if (e.key == 'Delete') {
+        if (disabled) return;
+        if (e.key == "Delete") {
             remove(info);
         }
     }
@@ -97,6 +105,7 @@
 <div
     class="timeline-subtitle"
     class:focused={info.focus}
+    class:disabled
     tabindex="-1"
     on:mousedown={onMouseDown}
     on:mouseup={onMouseUp}
@@ -133,6 +142,18 @@
 
         &.focused
             outline: 3px solid colors.$main
+
+        /* Different style for subtitles in the selected snapshots */
+        &.disabled
+            cursor: not-allowed
+
+            &.focused
+                outline: 3px solid colors.$blue
+
+            .handle
+                background: colors.$blue
+                outline: 3px solid colors.$blue
+                cursor: not-allowed
     
     .handle
         background: colors.$main

@@ -9,6 +9,7 @@
   import SnapshotSection from "../lib/editor/SnapshotSection.svelte";
 
   let subtitles: SubtitleInfo[] = [];
+  let subtitles_secondary: SubtitleInfo[] = [];
 
   import { setContext, onMount, onDestroy } from "svelte";
   import Header from "../lib/shared/Header.svelte";
@@ -50,6 +51,7 @@
   setContext("app", {
     refresh: () => {
       subtitles = subtitles;
+      subtitles_secondary = subtitles_secondary;
     },
     getSettings: () => {
       // TODO: store and retrieve
@@ -303,8 +305,7 @@
   }
 
   function debug() {
-    console.log(playerComponent.getCurrentTime());
-    console.log(subtitles);
+    console.log(subtitles_secondary);
   }
 </script>
 
@@ -339,6 +340,7 @@
     {projectInfo}
     {playing}
     {subtitles}
+    {subtitles_secondary}
     on:seek={(e) => {
       playbackController.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
       controlsComponent.seekTo(e.detail.seconds);
@@ -349,7 +351,7 @@
   <div class="bottom-area">
     <div class="bottom-section section-snapshots">
       <!-- section for comparing with other snapshots -->
-      <SnapshotSection {projectInfo} />
+      <SnapshotSection {projectInfo} bind:subtitles={subtitles_secondary} />
     </div>
     <div class="bottom-section section-subtitles">
       <SubtitleList {subtitles} />

@@ -6,6 +6,7 @@
     import Dialog, { Title, Content, Actions } from "@smui/dialog";
     import Button, { Label } from "@smui/button";
     import Textfield from "@smui/textfield";
+    import type SubtitleInfo from "./SubtitleInfo";
 
     let show_snapshot_list = false;
 
@@ -14,7 +15,6 @@
     let snapshot = {
         timestamp: "", // should be number maaaybe
         name: null,
-        subtitles: [],
     };
 
     let snapshot_selected = false;
@@ -23,13 +23,15 @@
 
     export let projectInfo;
 
+    export let subtitles: SubtitleInfo[];
+
     function fetch_snapshot() {
         fetch(`/api/project/${projectInfo.id}/snapshot/${selection}`)
             .then((res) => res.json())
             .then((res) => {
-                snapshot.subtitles = res.subtitles;
                 snapshot.name = res.name;
                 snapshot.timestamp = selection;
+                subtitles = res.subtitles;
                 snapshot_selected = true;
             });
     }
@@ -120,7 +122,7 @@
     </IconButton>
 </div>
 <div class="snapshots-content">
-    <SubtitleList subtitles={snapshot.subtitles} disabled={true} />
+    <SubtitleList {subtitles} disabled={true} />
 </div>
 
 <style lang="sass">

@@ -12,6 +12,7 @@
     const dispatch = createEventDispatcher();
 
     export let subtitles: SubtitleInfo[] = [];
+    export let subtitles_secondary: SubtitleInfo[] = [];
 
     export let playing = false;
 
@@ -71,6 +72,7 @@
     });
 
     let elements = {} as { [key: number]: TimelineElement };
+    let elements_secondary = {} as { [key: number]: TimelineElement };
 
     // Drag/scroll handling
     let dragging: boolean = false;
@@ -272,6 +274,7 @@
     on:mousemove={onMouseMove}
     on:mouseleave={onMouseUp}
     on:wheel={onScrollWheel}
+    class:showing-secondary-subtitles={subtitles_secondary.length > 0}
 >
     <div id="timeline-overlay" />
     <canvas id="timeline-canvas" on:mousedown={onMouseDown} height="100" />
@@ -279,7 +282,22 @@
         id="timeline-container"
         style="width: {timeline_width}px; left: calc(50% + {offset_from_left}px);"
     >
-        <div id="timeline-subtitles">
+        <div class="timeline-subtitles secondary">
+            {#each subtitles_secondary as subtitle, i (subtitle)}
+                <TimelineElement
+                    bind:this={elements_secondary[subtitle.id]}
+                    disabled={true}
+                    info={subtitle}
+                    prev_sibling={i > 0
+                        ? subtitles_secondary[i - 1]
+                        : start_element}
+                    next_sibling={i < subtitles_secondary.length - 1
+                        ? subtitles_secondary[i + 1]
+                        : end_element}
+                />
+            {/each}
+        </div>
+        <div class="timeline-subtitles">
             {#each subtitles as subtitle, i (subtitle)}
                 <TimelineElement
                     bind:this={elements[subtitle.id]}
@@ -295,7 +313,7 @@
 </div>
 
 <style lang="sass">
-    $total-height: 160px
+    $total-height: 150px
 
     #timeline-container
         background: #333
@@ -303,9 +321,12 @@
         position: relative
         height: $total-height
 
-    #timeline-subtitles
+    .timeline-subtitles
         z-index: 2
         padding-top: 10px
+
+        &.secondary
+            display: none
 
     #timeline-canvas
         position: absolute
@@ -327,4 +348,16 @@
         height: $total-height
         z-index: 3
 
+    #timeline-area.showing-secondary-subtitles
+        #timeline-container
+            height: $total-height + 50px
+
+        #timeline-overlay
+            height: $total-height + 50px
+
+        #timeline-canvas
+            margin-top: 100px
+
+        .timeline-subtitles.secondary
+            display: block
 </style>
