@@ -314,9 +314,13 @@
 
 <style lang="sass">
     $total-height: 150px
+    $background-color: #333
+
+    #timeline-area
+        background: $background-color
 
     #timeline-container
-        background: #333
+        background: $background-color
         overflow: auto
         position: relative
         height: $total-height
